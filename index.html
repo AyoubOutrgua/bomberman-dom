@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bomberman DOM</title>
+    <link rel="stylesheet" href="/assets/styles/style.css" />
+  </head>
+  <body>
+    <div id="game-wrapper">
+      <div id="hud">
+        <div class="hud-player">
+          <span class="hud-icon hud-p1"></span>
+          <span class="hud-label">P1</span>
+          <span class="hud-lives">❤❤❤</span>
+        </div>
+        <div class="hud-player">
+          <span class="hud-icon hud-p2"></span>
+          <span class="hud-label">P2</span>
+          <span class="hud-lives">❤❤❤</span>
+        </div>
+        <div class="hud-player">
+          <span class="hud-icon hud-p3"></span>
+          <span class="hud-label">P3</span>
+          <span class="hud-lives">❤❤❤</span>
+        </div>
+        <div class="hud-player">
+          <span class="hud-icon hud-p4"></span>
+          <span class="hud-label">P4</span>
+          <span class="hud-lives">❤❤❤</span>
+        </div>
+      </div>
+
+      <div id="board-container">
+        <div id="board">
+          <!-- 15 x 13 = 195 tiles rendered by JS -->
+        </div>
+        <div id="vignette"></div>
+        <div id="scanlines"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>
