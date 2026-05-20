@@ -1,5 +1,6 @@
 import { hxs, mountApp, Store } from '../framework/index.js';
 import { initialState } from './mockState.js';
+import { isColliding } from './utils.js';
 
 const FRAMES = {
     ArrowUp:    { row: 8,  cols: 9 }, 
@@ -102,10 +103,13 @@ const gameLoop = () => {
     p.frame = 0
   }
 
-  p.x = nextX;
-  p.y = nextY;
-  p.direction = newDir;
-  p.isMoving = isMoving;
+  if (!isColliding(nextX, nextY, store.state.map)) {
+      p.x = nextX;
+      p.y = nextY;
+    }
+    p.direction = newDir;
+    p.isMoving = isMoving;
+
 
   requestAnimationFrame(gameLoop);
 }
