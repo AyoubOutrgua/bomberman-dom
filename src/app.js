@@ -1,6 +1,13 @@
 import { hxs, mountApp, Store } from '../framework/index.js';
 import { initialState } from './mockState.js';
 
+const FRAMES = {
+    ArrowUp:    { row: 8,  cols: 9 }, 
+    ArrowLeft:  { row: 9,  cols: 9 }, 
+    ArrowDown:  { row: 10, cols: 9 }, 
+    ArrowRight: { row: 11, cols: 9 }, 
+};
+
 const view = (state) => {
   const tiles = []
   state.map.forEach(row => {
@@ -10,7 +17,32 @@ const view = (state) => {
     })
   });
 
-  const board = hxs('div', { id: 'board' }, ...tiles);
+  const p = state.player;
+    
+  const IMAGE_FRAME_SIZE = 64;
+  
+  const bgPosX = p.frame * IMAGE_FRAME_SIZE; 
+  const bgPosY = FRAMES[p.direction].row * IMAGE_FRAME_SIZE;
+
+  const offsetX = p.x - 8;
+  const offsetY = p.y - 16;
+
+  const player = hxs('div', {
+    style: `
+        position: absolute;
+        left: ${offsetX}px;
+        top: ${offsetY}px;
+        width: ${IMAGE_FRAME_SIZE}px;
+        height: ${IMAGE_FRAME_SIZE}px;
+        background-image: url('/assets/images/player-01.png');
+        background-size: auto;
+        background-position: -${bgPosX}px -${bgPosY}px;
+        z-index: 20; 
+    `
+  });
+
+
+  const board = hxs('div', { id: 'board' }, ...tiles, player);
 
   const boardContainer = hxs('div', { id: 'board-container' }, board);
 
