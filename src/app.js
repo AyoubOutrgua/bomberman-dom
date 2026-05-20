@@ -28,16 +28,13 @@ const view = (state) => {
   const offsetY = p.y - 16;
 
   const player = hxs('div', {
+    class: 'player player-01',
     style: `
-        position: absolute;
         left: ${offsetX}px;
         top: ${offsetY}px;
         width: ${IMAGE_FRAME_SIZE}px;
         height: ${IMAGE_FRAME_SIZE}px;
-        background-image: url('/assets/images/player-01.png');
-        background-size: auto;
         background-position: -${bgPosX}px -${bgPosY}px;
-        z-index: 20; 
     `
   });
 

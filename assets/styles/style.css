@@ -306,3 +306,13 @@ body {
 .player-white.dead {
   background-image: url("/assets/sprites/tiles/player-white-death.png");
 }
+
+.player {
+  position: absolute;
+  background-size: auto;
+  z-index: 20;
+}
+
+.player-01 {
+  background-image: url('/assets/images/player-01.png');
+}
