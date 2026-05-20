@@ -2,10 +2,11 @@ import http from "http";
 import fs from "node:fs/promises";
 import path from "path";
 import { fileURLToPath } from "node:url";
+import { WebSocketServer } from "ws";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const BASE_DIR = path.join(__dirname, "..");
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const BASE_DIR = path.join(dirname, "..");
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -49,8 +50,24 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+
+const webs = new WebSocketServer({ server });
+
+webs.on("connection", (ws, req) => {
+  console.log("New player joined the game!");
+
+  ws.on("message", (message) => {
+    console.log("Player sent: ", message.toString());
+  });
+
+  ws.on("close", () => {
+    console.log(" Player left the game");
+  });
+});
 const port = 3000;
 
 server.listen(port, () => {
   console.log(`Server is running securely on http://localhost:${port}`);
 });
+
+
