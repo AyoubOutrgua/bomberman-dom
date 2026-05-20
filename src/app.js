@@ -12,6 +12,9 @@ const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: f
 
 const handleKeyDown = (e) => {
     if (keys[e.key] !== undefined) {
+        for (const key of Object.keys(keys)) {
+            keys[key] = false
+        }
         keys[e.key] = true;
     }
 };
