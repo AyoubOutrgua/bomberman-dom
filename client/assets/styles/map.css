@@ -92,16 +92,16 @@ canvas,
 }
 
 .tile-floor {
-  background-image: url("/assets/sprites/tiles/tile-floor.png");
+  background-image: url("/client/assets/sprites/tiles/tile-floor.png");
 }
 
 .tile-wall {
-  background-image: url("/assets/sprites/tiles/tile-wall.png");
+  background-image: url("/client/assets/sprites/tiles/tile-wall.png");
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.4);
 }
 
 .tile-brick {
-  background-image: url("/assets/sprites/tiles/tile-brick.png");
+  background-image: url("/client/assets/sprites/tiles/tile-brick.png");
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3);
 }
 

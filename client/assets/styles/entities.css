@@ -11,32 +11,34 @@
   background-size: 624px 192px;
   background-repeat: no-repeat;
   background-position: 0px -96px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 /* ===========================
    PLAYERS
    =========================== */
 .player-red {
-  background-image: url("/assets/sprites/entities/player-red.png");
+  background-image: url("/client/assets/sprites/entities/player-red.png");
 }
 .player-blue {
-  background-image: url("/assets/sprites/entities/player-blue.png");
+  background-image: url("/client/assets/sprites/entities/player-blue.png");
 }
 .player-black {
-  background-image: url("/assets/sprites/entities/player-black.png");
+  background-image: url("/client/assets/sprites/entities/player-black.png");
 }
 .player-white {
-  background-image: url("/assets/sprites/entities/player-white.png");
+  background-image: url("/client/assets/sprites/entities/player-white.png");
 }
 
 /* ===========================
    ENEMIES
    =========================== */
 .enemy-skeleton {
-  background-image: url("/assets/sprites/entities/skeleton.png");
+  background-image: url("/client/assets/sprites/entities/skeleton.png");
 }
 .enemy-zombie {
-  background-image: url("/assets/sprites/entities/zombie.png");
+  background-image: url("/client/assets/sprites/entities/zombie.png");
 }
 
 .enemy-skeleton.dead,
@@ -51,14 +53,14 @@
 .entity-bomb {
   width: 32px;
   height: 32px;
-  background-image: url("/assets/sprites/tiles/bomb.png");
-  background-size: 100% 100%;
+  background-image: url("/client/assets/sprites/items/bomb.png");
+  background-size: 128px 32px;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: 0px 0px;
   position: absolute;
-  left: 8px;
-  top: 8px;
   z-index: 10;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 /* ===========================
@@ -67,21 +69,14 @@
 .entity-explosion {
   width: 48px;
   height: 48px;
-  background-size: 100% 100%;
+  background-image: url("/client/assets/sprites/items/fire.png");
+  background-size: 336px 48px;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: 0px 0px;
   position: absolute;
   z-index: 15;
-}
-
-.explosion-start {
-  background-image: url("/assets/sprites/tiles/explosion-start.png");
-}
-.explosion-middle {
-  background-image: url("/assets/sprites/tiles/explosion-middle.png");
-}
-.explosion-end {
-  background-image: url("/assets/sprites/tiles/explosion-end.png");
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 /* ===========================
@@ -113,14 +108,16 @@
   left: 10px;
   top: 10px;
   z-index: 5;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .item-bomb {
-  background-image: url("/assets/sprites/tiles/item-extra-bomb.png");
+  background-image: url("/client/assets/sprites/items/item-extra-bomb.png");
 }
 .item-flame {
-  background-image: url("/assets/sprites/tiles/item-blast-radius.png");
+  background-image: url("/client/assets/sprites/items/item-blast-radius.png");
 }
 .item-speed {
-  background-image: url("/assets/sprites/tiles/item-speed-increase.png");
+  background-image: url("/client/assets/sprites/items/item-speed-increase.png");
 }
