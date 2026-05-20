@@ -8,6 +8,20 @@ const FRAMES = {
     ArrowRight: { row: 11, cols: 9 }, 
 };
 
+const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+const handleKeyDown = (e) => {
+    if (keys[e.key] !== undefined) {
+        keys[e.key] = true;
+    }
+};
+
+const handleKeyUp = (e) => {
+    if (keys[e.key] !== undefined) {
+        keys[e.key] = false;
+    }
+};
+
 const view = (state) => {
   const tiles = []
   state.map.forEach(row => {
@@ -45,6 +59,9 @@ const view = (state) => {
 
     return hxs('div', { 
         id: 'game-wrapper',
+        tabindex: '0',
+        onkeydown: handleKeyDown,
+        onkeyup: handleKeyUp,
         style: 'outline: none;'
     }, boardContainer);
 }
@@ -52,3 +69,42 @@ const view = (state) => {
 const store = new Store(initialState);
 
 mountApp(store, view, 'root')
+
+setTimeout(() => {
+    const wrapper = document.getElementById('game-wrapper');
+    if (wrapper) wrapper.focus();
+}, 0);
+
+let frameCounter = 0
+
+const gameLoop = () => {
+  const p = store.state.player
+  let isMoving = false
+  let newDir = p.direction
+  let nextX = p.x
+  let nextY = p.y
+
+  if (keys.ArrowUp)    { nextY -= p.speed; newDir = 'ArrowUp';    isMoving = true; }
+  if (keys.ArrowDown)  { nextY += p.speed; newDir = 'ArrowDown';  isMoving = true; }
+  if (keys.ArrowLeft)  { nextX -= p.speed; newDir = 'ArrowLeft';  isMoving = true; }
+  if (keys.ArrowRight) { nextX += p.speed; newDir = 'ArrowRight'; isMoving = true; }
+
+  if (isMoving) {
+    frameCounter += 1
+    if (frameCounter > 5) { 
+        p.frame = (p.frame + 1) % FRAMES[newDir].cols
+        frameCounter = 0
+    }
+  } else {
+    p.frame = 0
+  }
+
+  p.x = nextX;
+  p.y = nextY;
+  p.direction = newDir;
+  p.isMoving = isMoving;
+
+  requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop)
