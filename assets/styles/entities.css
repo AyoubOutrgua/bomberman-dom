@@ -36,7 +36,7 @@
   background-image: url("/assets/sprites/entities/skeleton.png");
 }
 .enemy-zombie {
-  background-image: url("/assets/sprites/zombie.png");
+  background-image: url("/assets/sprites/entities/zombie.png");
 }
 
 .enemy-skeleton.dead,
