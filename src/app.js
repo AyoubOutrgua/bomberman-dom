@@ -1,37 +1,25 @@
-const BASE_MAP = [
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-];
+import { hxs, mountApp, Store } from '../framework/index.js';
+import { initialState } from './mockState.js';
 
-const board = document.getElementById("board");
+const view = (state) => {
+  const tiles = []
+  state.map.forEach(row => {
+    row.forEach(cell => {
+      const tileClass = cell === 1 ? 'tile-wall' : cell === 2 ? 'tile-brick' : 'tile-floor'
+      tiles.push(hxs('div', {class: `tile ${tileClass}`}))
+    })
+  });
 
-for (let row = 0; row < BASE_MAP.length; row++) {
-  for (let col = 0; col < BASE_MAP[row].length; col++) {
-    const cell = BASE_MAP[row][col];
+  const board = hxs('div', { id: 'board' }, ...tiles);
 
-    const tile = document.createElement("div");
-    tile.classList = "tile";
+  const boardContainer = hxs('div', { id: 'board-container' }, board);
 
-    switch (cell) {
-      case 0:
-        tile.classList = "tile-floor";
-        break;
-      case 1:
-        tile.classList = "tile-wall";
-        break;
-    }
-
-    board.appendChild(tile);
-  }
+    return hxs('div', { 
+        id: 'game-wrapper',
+        style: 'outline: none;'
+    }, boardContainer);
 }
+
+const store = new Store(initialState);
+
+mountApp(store, view, 'root')
