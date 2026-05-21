@@ -4,6 +4,7 @@
 
 import { hxs } from '../../framework/dom.js';
 import { PlayerEntity } from './PlayerEntity.js';
+import { keys } from '../lib/loop.js';
 
 const handleKeyDown = (e) => {
     console.log('key down ++++++++++++++++++');
@@ -36,6 +37,8 @@ export const Board = (state) => {
     const board = hxs('div', 
       { 
         id: 'board',
+        tabindex: '0',
+        style: 'outline: none;',
         onkeydown: handleKeyDown,
         onkeyup: handleKeyUp,
       }, ...tiles, player);

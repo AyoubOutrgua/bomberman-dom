@@ -10,10 +10,13 @@ const appView = (state) => {
     return Board(state)
 };
 
+const container = document.getElementById('board-container');
+if (container) container.innerHTML = '';
+
 mountApp(store, appView, 'board-container');
 
 setTimeout(() => {
-    const wrapper = document.getElementById('board-container');
+    const wrapper = document.getElementById('board'); 
     if (wrapper) wrapper.focus();
 }, 0);
 
