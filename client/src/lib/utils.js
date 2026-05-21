@@ -1,11 +1,15 @@
 import { TILE_SIZE } from '../../../shared/constants.js';
 
 export const isColliding = (nextX, nextY, map) => {
-    const MARGIN = 6;
-    const left = nextX + MARGIN;
-    const right = nextX + TILE_SIZE - MARGIN;
-    const top = nextY + MARGIN;
-    const bottom = nextY + TILE_SIZE - MARGIN;
+    const MARGIN_LEFT = 10;
+    const MARGIN_RIGHT = 10;
+    const MARGIN_TOP = 20;
+    const MARGIN_BOTTOM = 2;
+
+    const left = nextX + MARGIN_LEFT;
+    const right = nextX + TILE_SIZE - MARGIN_RIGHT;
+    const top = nextY + MARGIN_TOP;
+    const bottom = nextY + TILE_SIZE - MARGIN_BOTTOM;
 
     const colLeft = Math.floor(left / TILE_SIZE);
     const colRight = Math.floor(right / TILE_SIZE);
