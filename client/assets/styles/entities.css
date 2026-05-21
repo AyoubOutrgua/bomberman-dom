@@ -121,3 +121,14 @@
 .item-speed {
   background-image: url("/client/assets/sprites/items/item-speed-increase.png");
 }
+
+
+.player {
+  position: absolute;
+  background-size: auto;
+  z-index: 20;
+}
+
+.player-01 {
+  background-image: url('/client/assets/sprites/entities/player-black.png');
+}
