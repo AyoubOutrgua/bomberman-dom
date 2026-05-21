@@ -2,7 +2,7 @@
 // Handles walk/death sprite animation from spritesheet and applies smooth
 // pixel-position transitions between tiles during movement.
 
-import { hxs } from '../../framework/dom.js';
+import { hxs } from '../lib/framework/index.js';
 import { IMAGE_FRAME_SIZE, FRAMES } from '../../../shared/constants.js';
 
 export const PlayerEntity = (player) => {

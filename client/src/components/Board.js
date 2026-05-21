@@ -2,7 +2,7 @@
 // brick, floor, and spawn tiles. Manages bomb entities with countdown
 // animation, explosion overlays, and power-up item drops as children.
 
-import { hxs } from '../../framework/dom.js';
+import { hxs } from '../lib/framework/index.js';
 import { PlayerEntity } from './PlayerEntity.js';
 import { keys } from '../lib/loop.js';
 

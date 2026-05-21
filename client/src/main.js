@@ -1,6 +1,6 @@
 // /client/src/main.js
 
-import { hxs, mountApp } from '../framework/index.js';
+import { hxs, mountApp } from './lib/framework/index.js';
 import { store } from './lib/state.js';
 import { Board } from './components/Board.js';
 import { gameLoop, keys } from './lib/loop.js';

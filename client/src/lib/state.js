@@ -2,7 +2,7 @@
 // player list, map grid, bomb positions, scores, chat history. Emits change
 // events so components re-render on state transitions.
 
-import { Store } from '../../framework/state.js';
+import { Store } from './framework/index.js';
 
 const BASE_MAP = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],

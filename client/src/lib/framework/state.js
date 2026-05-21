@@ -24,7 +24,7 @@ export class Store {
     this._destroyed = false;
     this._isBatching = false;
     this._isQueued = false;
-    this._hasMutated = false;
+    this._hasMutated = false; // FIX 1: mutation sentinel
     this._subscribers = new Set();
 
     this._proxyCache = new WeakMap();
@@ -64,6 +64,8 @@ export class Store {
 
     const self = this;
 
+    // FIX 2: eagerly wrap all nested objects BEFORE creating the proxy,
+    // so the get trap never needs to mutate target[key] at read time.
     for (const key of Object.keys(data)) {
       if (isProxyable(data[key])) {
         data[key] = this._createDeepProxy(data[key]);
@@ -76,16 +78,18 @@ export class Store {
 
         if (Array.isArray(target) && ARRAY_MUTATORS.has(key)) {
           return (...args) => {
+            // Only wrap newly added arguments (O(1))
             const wrappedArgs = args.map((arg) =>
               isProxyable(arg) ? self._createDeepProxy(arg) : arg,
             );
             const result = Array.prototype[key].apply(target, wrappedArgs);
-            self._hasMutated = true;
+            self._hasMutated = true; // FIX 1
             self._scheduleUpdate();
             return result;
           };
         }
 
+        // FIX 2: no lazy target[key] = wrapped mutation here
         return value;
       },
 
@@ -103,7 +107,7 @@ export class Store {
           : value;
 
         Reflect.set(target, key, newValue, receiver);
-        self._hasMutated = true;
+        self._hasMutated = true; // FIX 1
         self._scheduleUpdate();
         return true;
       },
