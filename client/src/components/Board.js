@@ -3,11 +3,10 @@
 // animation, explosion overlays, and power-up item drops as children.
 
 import { hxs } from '../lib/framework/index.js';
-import { PlayerEntity } from './PlayerEntity.js';
+import { PlayersEntity } from './PlayersEntity.js';
 import { keys } from '../lib/loop.js';
 
 const handleKeyDown = (e) => {
-    console.log('key down ++++++++++++++++++');
     if (keys[e.key] !== undefined) {
         for (const key of Object.keys(keys)) {
             keys[key] = false;
@@ -17,7 +16,6 @@ const handleKeyDown = (e) => {
 };
 
 const handleKeyUp = (e) => {
-    console.log('key up ++++++++++++++++++');
     if (keys[e.key] !== undefined) {
         keys[e.key] = false;
     }
@@ -31,8 +29,8 @@ export const Board = (state) => {
         tiles.push(hxs('div', {class: `tile ${tileClass}`}));
       });
     });
-  
-    const player = PlayerEntity(state.player);
+     
+    const players = PlayersEntity(state.players, state.myId);
   
     const board = hxs('div', 
       { 
@@ -41,6 +39,6 @@ export const Board = (state) => {
         style: 'outline: none;',
         onkeydown: handleKeyDown,
         onkeyup: handleKeyUp,
-      }, ...tiles, player);
+      }, ...tiles, ...players);
     return  board;
 };

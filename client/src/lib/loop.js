@@ -3,7 +3,7 @@
 // provides delta-time for smooth animation interpolation.
 
 import { store } from './state.js';
-import { isColliding } from './utils.js';
+import { isColliding } from '../../../shared/physics.js';
 import { FRAMES } from '../../../shared/constants.js';
 
 export const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
@@ -11,7 +11,7 @@ export const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowR
 let frameCounter = 0;
 
 export const gameLoop = () => {
-  const p = store.state.player;
+  const p = store.state.players[store.state.myId];
   let isMoving = false;
   let newDir = p.direction;
   let nextX = p.x;
