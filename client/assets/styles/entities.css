@@ -1,0 +1,134 @@
+/* ===========================
+   ENTITY BASE
+   =========================== */
+.entity {
+  width: 48px;
+  height: 48px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 20;
+  background-size: 624px 192px;
+  background-repeat: no-repeat;
+  background-position: 0px -96px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ===========================
+   PLAYERS
+   =========================== */
+.player-red {
+  background-image: url("/client/assets/sprites/entities/player-red.png");
+}
+.player-blue {
+  background-image: url("/client/assets/sprites/entities/player-blue.png");
+}
+.player-black {
+  background-image: url("/client/assets/sprites/entities/player-black.png");
+}
+.player-white {
+  background-image: url("/client/assets/sprites/entities/player-white.png");
+}
+
+/* ===========================
+   ENEMIES
+   =========================== */
+.enemy-skeleton {
+  background-image: url("/client/assets/sprites/entities/skeleton.png");
+}
+.enemy-zombie {
+  background-image: url("/client/assets/sprites/entities/zombie.png");
+}
+
+.enemy-skeleton.dead,
+.enemy-zombie.dead {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+/* ===========================
+   BOMB
+   =========================== */
+.entity-bomb {
+  width: 32px;
+  height: 32px;
+  background-image: url("/client/assets/sprites/items/bomb.png");
+  background-size: 128px 32px;
+  background-repeat: no-repeat;
+  background-position: 0px 0px;
+  position: absolute;
+  z-index: 10;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ===========================
+   EXPLOSION
+   =========================== */
+.entity-explosion {
+  width: 48px;
+  height: 48px;
+  background-image: url("/client/assets/sprites/items/fire.png");
+  background-size: 336px 48px;
+  background-repeat: no-repeat;
+  background-position: 0px 0px;
+  position: absolute;
+  z-index: 15;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ===========================
+   ROTATION HELPERS
+   =========================== */
+.rotate-0 {
+  transform: rotate(0deg);
+}
+.rotate-90 {
+  transform: rotate(90deg);
+}
+.rotate-180 {
+  transform: rotate(180deg);
+}
+.rotate-270 {
+  transform: rotate(270deg);
+}
+
+/* ===========================
+   ITEMS / POWER UPS
+   =========================== */
+.entity-item {
+  width: 28px;
+  height: 28px;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 5;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.item-bomb {
+  background-image: url("/client/assets/sprites/items/item-extra-bomb.png");
+}
+.item-flame {
+  background-image: url("/client/assets/sprites/items/item-blast-radius.png");
+}
+.item-speed {
+  background-image: url("/client/assets/sprites/items/item-speed-increase.png");
+}
+
+
+.player {
+  position: absolute;
+  background-size: auto;
+  z-index: 20;
+}
+
+.player-01 {
+  background-image: url('/client/assets/sprites/entities/player-black.png');
+}
