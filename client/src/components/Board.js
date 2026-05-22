@@ -2,45 +2,20 @@
 // brick, floor, and spawn tiles. Manages bomb entities with countdown
 // animation, explosion overlays, and power-up item drops as children.
 
-import { hxs } from '../lib/framework/index.js';
-import { PlayerEntity } from './PlayerEntity.js';
-import { keys } from '../lib/loop.js';
+import { hxs } from "../lib/framework/index.js";
+import { TILE } from "../../../shared/constants.js";
 
-const handleKeyDown = (e) => {
-    console.log('key down ++++++++++++++++++');
-    if (keys[e.key] !== undefined) {
-        for (const key of Object.keys(keys)) {
-            keys[key] = false;
-        }
-        keys[e.key] = true;
-    }
+const TILE_CLASSES = {
+  [TILE.FLOOR]: "tile-floor",
+  [TILE.WALL]: "tile-wall",
+  [TILE.BRICK]: "tile-brick",
 };
 
-const handleKeyUp = (e) => {
-    console.log('key up ++++++++++++++++++');
-    if (keys[e.key] !== undefined) {
-        keys[e.key] = false;
-    }
-};
+export default function Board(grid) {
+  const tiles = grid.flat().map((cell, index) => {
+    const tileClass = TILE_CLASSES[cell] || "tile-floor";
+    return hxs("div", { class: `tile ${tileClass}`, key: index });
+  });
 
-export const Board = (state) => {
-    const tiles = [];
-    state.map.forEach(row => {
-      row.forEach(cell => {
-        const tileClass = cell === 1 ? 'tile-wall' : cell === 2 ? 'tile-brick' : 'tile-floor';
-        tiles.push(hxs('div', {class: `tile ${tileClass}`}));
-      });
-    });
-  
-    const player = PlayerEntity(state.player);
-  
-    const board = hxs('div', 
-      { 
-        id: 'board',
-        tabindex: '0',
-        style: 'outline: none;',
-        onkeydown: handleKeyDown,
-        onkeyup: handleKeyUp,
-      }, ...tiles, player);
-    return  board;
-};
+  return hxs("div", { id: "board" }, ...tiles);
+}

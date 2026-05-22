@@ -1,23 +1,10 @@
-// /client/src/main.js
+import { mountApp } from "./lib/framework/index.js";
 
-import { hxs, mountApp } from './lib/framework/index.js';
-import { store } from './lib/state.js';
-import { Board } from './components/Board.js';
-import { gameLoop, keys } from './lib/loop.js';
+import Board from "./components/Board.js";
+import { store } from "./lib/state.js";
 
+function view(state) {
+  return Board(state.map);
+}
 
-const appView = (state) => {
-    return Board(state)
-};
-
-const container = document.getElementById('board-container');
-if (container) container.innerHTML = '';
-
-mountApp(store, appView, 'board-container');
-
-setTimeout(() => {
-    const wrapper = document.getElementById('board'); 
-    if (wrapper) wrapper.focus();
-}, 0);
-
-requestAnimationFrame(gameLoop);
+mountApp(store, view, "board-container");
