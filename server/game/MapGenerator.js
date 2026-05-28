@@ -2,7 +2,7 @@
 // randomly scatters destructible bricks avoiding 4 corner spawn zones (2×2),
 // and returns a 2D array consumed by both server logic and client renderer.
 
-import { MAP_WIDTH, MAP_HEIGHT, TILE, SPAWNS } from "../../shared/constants";
+import { MAP_WIDTH, MAP_HEIGHT, TILE, SPAWNS } from "../../shared/constants.js";
 
 const GRID = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -21,7 +21,7 @@ const GRID = [
 ];
 
 export function getGrid() {
-  return Grid.map((row) => [...row]);
+  return GRID.map((row) => [...row]);
 }
 
 function isBrickCandidate(cell, row, col) {
@@ -29,7 +29,7 @@ function isBrickCandidate(cell, row, col) {
 
   SPAWNS.forEach((spwn) => {
     if (spwn.row === row && spwn.col === col) {
-        return
+      return;
     }
   });
 }
