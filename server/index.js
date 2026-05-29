@@ -21,12 +21,11 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer(async (req, res) => {
-
   let safeUrl = req.url === "/" ? "/client/index.html" : req.url;
 
   safeUrl = decodeURI(safeUrl);
   const fullPath = path.join(BASE_DIR, safeUrl);
-  
+
   if (!fullPath.startsWith(BASE_DIR)) {
     res.setHeader("Content-Type", "text/plain");
     res.statusCode = 403;
@@ -44,8 +43,8 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     res.setHeader("Content-Type", "text/plain");
     if (error.code === "ENOENT") {
-      res.statusCode = 404;
-      res.end("404 File Not Found");
+      res.writeHead(302, { Location: "/#/404" });
+      res.end();
     } else {
       res.statusCode = 500;
       res.end("500 Internal Server Error");
@@ -54,7 +53,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 const webs = new WebSocketServer({ server });
-setupSockets(webs); 
+setupSockets(webs);
 
 const port = 3000;
 server.listen(port, () => {

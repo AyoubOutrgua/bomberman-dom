@@ -1,9 +1,25 @@
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { handleChatMessage } from "./chatController.js";
+import { getGrid } from "../game/MapGenerator.js";
+import { SPAWNS, TILE_SIZE } from "../../shared/constants.js";
 
 export const gameEvents = new EventEmitter();
 const rooms = new Map();
+
+gameEvents.on("PLAYER_DEAD", (playerId, roomId) => {
+  broadcastToRoom(roomId, {
+    type: "PLAYER_DEAD",
+    payload: { playerId },
+  });
+});
+
+gameEvents.on("GAME_OVER", (roomId, winnerId) => {
+  broadcastToRoom(roomId, {
+    type: "GAME_OVER",
+    payload: { winnerId },
+  });
+});
 
 export function broadcastToRoom(roomId, messageData) {
   const room = rooms.get(roomId);
@@ -19,32 +35,49 @@ export function broadcastToRoom(roomId, messageData) {
 
 function createRoom() {
   const newRoom = {
-    id: randomUUID(), 
-    players: [],               
-    status: "waiting",         
+    id: randomUUID(),
+    players: [],
+    status: "waiting",
     timer: null,
-    timeLeft: 0,               
-    phase: "waiting"
+    timeLeft: 0,
+    phase: "waiting",
   };
-  rooms.set(newRoom.id, newRoom); 
+  rooms.set(newRoom.id, newRoom);
   return newRoom;
 }
 
 function findAvailableRoom() {
   for (const room of rooms.values()) {
-    if(room.status === "waiting" && room.players.length < 4) {
+    if (room.status === "waiting" && room.players.length < 4) {
       return room;
     }
   }
   return null;
 }
 
+function cleanRoom(roomId) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+  if (room.timer) {
+    clearTimeout(room.timer);
+    room.timer = null;
+  }
+  rooms.delete(roomId);
+}
+
 function joinPlayer(ws, username) {
-  if (!username || username.trim() === "" || username.length > 15) {
-    ws.send(JSON.stringify({ 
-      type: "JOIN_ERROR", 
-      payload: { message: "Invalid username!" } 
-    }));
+  const trimmed = username ? username.trim() : "";
+  const sanitized = trimmed.replace(/[<>"'&]/g, "");
+
+  if (!sanitized || sanitized.length === 0 || sanitized.length > 15) {
+    ws.send(
+      JSON.stringify({
+        type: "JOIN_ERROR",
+        payload: {
+          message: "Invalid username! (1-15 characters, no special chars)",
+        },
+      }),
+    );
     return;
   }
 
@@ -52,38 +85,98 @@ function joinPlayer(ws, username) {
   if (!room) {
     room = createRoom();
   }
-  
-  const isTaken = room.players.some(player => player.username === username);
-  
+
+  const isTaken = room.players.some((p) => p.username === sanitized);
   if (isTaken) {
-    ws.send(JSON.stringify({ 
-      type: "JOIN_ERROR", 
-      payload: { message: "Username is already taken in this room!" } 
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "JOIN_ERROR",
+        payload: { message: "Username is already taken in this room!" },
+      }),
+    );
     return;
   }
 
-  const player = { id: randomUUID(), socket: ws, username: username };
+  const player = { id: randomUUID(), socket: ws, username: sanitized };
   room.players.push(player);
 
   ws.roomId = room.id;
   ws.playerId = player.id;
-  ws.username = username;
-  
-  ws.send(JSON.stringify({ 
-    type: "JOIN_SUCCESS", 
-    payload: { roomId: room.id, username: username } 
-  }));
-  
+  ws.username = sanitized;
+
+  ws.send(
+    JSON.stringify({
+      type: "JOIN_SUCCESS",
+      payload: { roomId: room.id, username: sanitized },
+    }),
+  );
+
   broadcastToRoom(room.id, {
     type: "PLAYER_COUNT",
-    payload: { 
-      count: room.players.length, 
-      players: room.players.map(p => p.username) 
-    }
+    payload: {
+      count: room.players.length,
+      players: room.players.map((p) => p.username),
+    },
   });
-  
+
   handleRoomTimer(room.id);
+}
+
+function scheduleNextTick(roomId) {
+  const room = rooms.get(roomId);
+  if (!room || room.status === "playing" || room.status === "finished") return;
+
+  room.timer = setTimeout(() => {
+    const r = rooms.get(roomId);
+    if (!r) return;
+
+    r.timeLeft--;
+
+    broadcastToRoom(roomId, {
+      type: "TIMER_UPDATE",
+      payload: { timeLeft: r.timeLeft, phase: r.phase },
+    });
+
+    if (r.timeLeft <= 0) {
+      if (r.phase === "soft_countdown") {
+        r.phase = "locked_countdown";
+        r.status = "locked";
+        r.timeLeft = 10;
+        scheduleNextTick(roomId);
+      } else if (r.phase === "locked_countdown") {
+        r.timer = null;
+        startGame(roomId);
+      }
+    } else {
+      scheduleNextTick(roomId);
+    }
+  }, 1000);
+}
+
+function startGame(roomId) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+
+  room.status = "playing";
+
+  const initialMap = getGrid();
+
+  const playersList = room.players.map((p, index) => {
+    const spawn = SPAWNS[index] || SPAWNS[0];
+    return {
+      id: p.id,
+      username: p.username,
+      x: spawn.col * TILE_SIZE,
+      y: spawn.row * TILE_SIZE,
+    };
+  });
+
+  broadcastToRoom(roomId, {
+    type: "START_GAME",
+    payload: { map: initialMap, players: playersList },
+  });
+
+  gameEvents.emit("GAME_STARTED", room.id);
 }
 
 function handleRoomTimer(roomId) {
@@ -92,103 +185,135 @@ function handleRoomTimer(roomId) {
 
   if (room.players.length < 2) {
     if (room.timer) {
-      clearInterval(room.timer);
+      clearTimeout(room.timer);
       room.timer = null;
     }
     room.status = "waiting";
     room.phase = "waiting";
+    room.timeLeft = 0;
     broadcastToRoom(roomId, { type: "TIMER_STOP" });
+    return;
+  }
+
+  if (room.players.length === 4 && room.phase === "soft_countdown") {
+    if (room.timer) {
+      clearTimeout(room.timer);
+      room.timer = null;
+    }
+    room.phase = "locked_countdown";
+    room.status = "locked";
+    room.timeLeft = 10;
+    broadcastToRoom(roomId, {
+      type: "TIMER_UPDATE",
+      payload: { timeLeft: room.timeLeft, phase: room.phase },
+    });
+    scheduleNextTick(roomId);
     return;
   }
 
   if (room.players.length >= 2 && !room.timer) {
     room.phase = "soft_countdown";
+    room.status = "waiting";
     room.timeLeft = 20;
-    room.timer = setInterval(() => {
-      room.timeLeft--;
-      broadcastToRoom(roomId, {
-        type: "TIMER_UPDATE",
-        payload: { timeLeft: room.timeLeft, phase: room.phase }
-      });
-      
-      if (room.timeLeft <= 0 && room.phase === "soft_countdown") {
-        room.phase = "locked_countdown"; 
-        room.status = "locked";          
-        room.timeLeft = 10;              
-      }
-      else if (room.timeLeft <= 0 && room.phase === "locked_countdown") {
-        clearInterval(room.timer);
-        room.timer = null;
-        room.status = "playing";
-        gameEvents.emit("GAME_STARTED", room.id);
-      }
-    }, 1000);
-  }
-
-  if (room.players.length === 4 && room.phase === "soft_countdown") {
-    room.phase = "locked_countdown";
-    room.status = "locked";
-    room.timeLeft = 10;
+    scheduleNextTick(roomId);
   }
 }
 
 export function setupSockets(webs) {
-  webs.on("connection", (ws, req) => {
+  webs.on("connection", (ws) => {
     ws.on("message", (message) => {
       try {
         const data = JSON.parse(message.toString());
-        
-        if (data.type === "JOIN_ROOM") {
-           const requestedUsername = data.payload.username;
-           joinPlayer(ws, requestedUsername);
-        } 
-        else if (data.type === "CHAT_MESSAGE") {
-           handleChatMessage(ws, data.payload, broadcastToRoom);
-        }
-        else if (data.type === "MOVE") {
-           if (ws.roomId && ws.playerId) {
-             const room = rooms.get(ws.roomId);
-             if (room && room.status === "playing") {
-               gameEvents.emit("PLAYER_MOVED", ws.playerId, ws.roomId, data.payload);
-             }
-           }
-        }
-        else if (data.type === "PLACE_BOMB") {
-           if (ws.roomId && ws.playerId) {
-             const room = rooms.get(ws.roomId);
-             if (room && room.status === "playing") {
-               gameEvents.emit("BOMB_PLACED", ws.playerId, ws.roomId, data.payload);
-             }
-           }
+
+        switch (data.type) {
+          case "JOIN_ROOM":
+            joinPlayer(ws, data.payload?.username);
+            break;
+
+          case "CHAT_MESSAGE":
+            handleChatMessage(ws, data.payload, broadcastToRoom);
+            break;
+
+          case "MOVE":
+            if (ws.roomId && ws.playerId) {
+              const room = rooms.get(ws.roomId);
+              if (room?.status === "playing") {
+                gameEvents.emit(
+                  "PLAYER_MOVED",
+                  ws.playerId,
+                  ws.roomId,
+                  data.payload,
+                );
+              }
+            }
+            break;
+
+          case "PLACE_BOMB":
+            if (ws.roomId && ws.playerId) {
+              const room = rooms.get(ws.roomId);
+              if (room?.status === "playing") {
+                gameEvents.emit(
+                  "BOMB_PLACED",
+                  ws.playerId,
+                  ws.roomId,
+                  data.payload,
+                );
+              }
+            }
+            break;
+
+          default:
+            console.warn(`[Socket] Unknown message type: ${data.type}`);
         }
       } catch (error) {
-         console.warn(` Invalid message from [${ws.username || "unknown"}]:`, error.message)
+        console.warn(
+          `[Socket] Invalid message from [${ws.username || "unknown"}]:`,
+          error.message,
+        );
       }
     });
-  
+
     ws.on("close", () => {
-      if (ws.roomId && ws.playerId) {
-        const room = rooms.get(ws.roomId);
-        if (room) {
-          room.players = room.players.filter(player => player.id !== ws.playerId);
-          if (room.players.length === 0) {
-            rooms.delete(room.id);
-          } else {
-            if (room.status === "locked" && room.players.length < 4) {
-              clearInterval(room.timer);
-              room.timer = null;
-              room.status = "waiting";
-              room.phase = "soft_countdown";
-              room.timeLeft = 20;
-            }
-            broadcastToRoom(room.id, {
-              type: "PLAYER_COUNT",
-              payload: { count: room.players.length, players: room.players.map(p => p.username) }
-            });
-            handleRoomTimer(room.id);
-          }
-        }
+      if (!ws.roomId || !ws.playerId) return;
+
+      const room = rooms.get(ws.roomId);
+      if (!room) return;
+
+      room.players = room.players.filter((p) => p.id !== ws.playerId);
+
+      if (room.players.length === 0) {
+        cleanRoom(room.id);
+        return;
       }
+
+      if (room.timer) {
+        clearTimeout(room.timer);
+        room.timer = null;
+      }
+
+      if (room.status === "playing") {
+        broadcastToRoom(room.id, {
+          type: "PLAYER_LEFT",
+          payload: {
+            count: room.players.length,
+            players: room.players.map((p) => p.username),
+          },
+        });
+
+        gameEvents.emit("PLAYER_DISCONNECTED", ws.playerId, room.id);
+
+        return;
+      }
+
+      broadcastToRoom(room.id, {
+        type: "PLAYER_COUNT",
+        payload: {
+          count: room.players.length,
+          players: room.players.map((p) => p.username),
+        },
+      });
+
+      handleRoomTimer(room.id);
     });
   });
 }
