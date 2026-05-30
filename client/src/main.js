@@ -7,7 +7,7 @@ import {
   navigateTo,
 } from "./lib/framework/index.js";
 import { store } from "./lib/state.js";
-import { gameLoop } from "./lib/loop.js";
+import { gameLoop, startGameLoop } from "./lib/loop.js";
 import { initNetwork } from "./lib/network.js";
 
 import { Login } from "./components/login.js";
@@ -54,6 +54,7 @@ addRoute("/map", () => {
     navigateTo("/lobby");
     return;
   }
+  startGameLoop();
   return { currentView: "map" };
 });
 
@@ -94,13 +95,19 @@ const NotFound = () => {
 const appView = (state) => {
   switch (state.currentView) {
     case "login":
-      return Login(state);
+        return Login(state);
     case "lobby":
-      return mainLayout(Lobby(state), state);
+        return mainLayout(Lobby(state), state);
     case "map":
-      return mainLayout(Board(state), state);
+
+        setTimeout(() => {
+            const wrapper = document.getElementById("board");
+            if (wrapper) wrapper.focus();
+        }, 0);
+
+        return mainLayout(Board(state), state);
     default:
-      return NotFound();
+        return NotFound();
   }
 };
 
@@ -109,10 +116,3 @@ if (container) container.innerHTML = "";
 
 mountApp(store, appView, "board-container");
 window.dispatchEvent(new Event("hashchange"));
-
-setTimeout(() => {
-  const wrapper = document.getElementById("board");
-  if (wrapper) wrapper.focus();
-}, 0);
-
-requestAnimationFrame(gameLoop);

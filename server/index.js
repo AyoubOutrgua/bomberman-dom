@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocketServer } from "ws";
 import { setupSockets } from "./network/socketHandler.js";
+import './game/GameEngine.js';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
