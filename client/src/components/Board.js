@@ -5,32 +5,58 @@
 import { hxs } from '../lib/framework/index.js';
 import { PlayersEntity } from './PlayersEntity.js';
 import { keys } from '../lib/loop.js';
+import { sendPlayerMove } from '../lib/network.js';
+
+const keyupTimeouts = {};
 
 const handleKeyDown = (e) => {
     if (keys[e.key] !== undefined) {
-        for (const key of Object.keys(keys)) {
-            keys[key] = false;
+        
+        if (keyupTimeouts[e.key]) {
+            clearTimeout(keyupTimeouts[e.key]);
+            keyupTimeouts[e.key] = null;
         }
+
+        const isFirstPress = !keys[e.key];
+
+        for (const key of Object.keys(keys)) {
+            if (key !== e.key) keys[key] = false;
+        }
+
         keys[e.key] = true;
+
+        if (isFirstPress) {
+            sendPlayerMove(e.key);
+        }
     }
 };
 
 const handleKeyUp = (e) => {
-    if (keys[e.key] !== undefined) {
-        keys[e.key] = false;
-    }
+  if (keys[e.key] !== undefined) {
+      
+      keyupTimeouts[e.key] = setTimeout(() => {
+          keys[e.key] = false;
+          
+          const isAnyKeyDown = Object.values(keys).some(val => val === true);
+          if (!isAnyKeyDown) {
+              sendPlayerMove('none');
+          }
+      }, 50);
+  }
 };
 
 export const Board = (state) => {
     const tiles = [];
-    state.map.forEach(row => {
+    if (state.game.map) {
+      state.game.map.forEach(row => {
       row.forEach(cell => {
         const tileClass = cell === 1 ? 'tile-wall' : cell === 2 ? 'tile-brick' : 'tile-floor';
         tiles.push(hxs('div', {class: `tile ${tileClass}`}));
       });
     });
+  }
      
-    const players = PlayersEntity(state.players, state.myId);
+    const players = PlayersEntity(state.game.players);
   
     const board = hxs('div', 
       { 
@@ -40,5 +66,5 @@ export const Board = (state) => {
         onkeydown: handleKeyDown,
         onkeyup: handleKeyUp,
       }, ...tiles, ...players);
-    return  board;
+    return board;
 };
