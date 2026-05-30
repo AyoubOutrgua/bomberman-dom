@@ -1,7 +1,7 @@
 import { gameEvents, broadcastToRoom } from '../network/socketHandler.js';
 import { Player } from './Player.js';
 import { isColliding } from '../../shared/physics.js';
-import { BASE_MAP } from '../../shared/mockData.js';
+import { getGrid } from './MapGenerator.js';
 
 const activeGames = new Map();
 
@@ -16,6 +16,8 @@ gameEvents.on("GAME_STARTED", (roomId, playersList) => {
                 playersMap.set(p.id, new Player(p.id, p.username, "player-white", p.x, p.y));
             });
         }
+
+        const BASE_MAP = getGrid();
 
         activeGames.set(roomId, { 
             map: BASE_MAP, 

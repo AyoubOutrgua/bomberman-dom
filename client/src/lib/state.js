@@ -3,8 +3,8 @@
 // events so components re-render on state transitions.
 
 import { Store } from './framework/index.js';
-import { BASE_MAP } from '../../../shared/mockData.js'; 
-
+import { getGrid } from '../../../server/game/MapGenerator.js';
+const BASE_MAP = getGrid();
 export const initialState = {
     roomId: 'room-01',
     myId: 'P1',
