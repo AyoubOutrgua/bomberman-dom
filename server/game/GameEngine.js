@@ -1,7 +1,3 @@
-// Game state machine: manages lobby → countdown → active → round-end phases.
-// Tracks connected players, validates moves, enforces bomb/explosion rules,
-// detects deaths, and broadcasts full state updates to all clients.
-
 import { gameEvents, broadcastToRoom } from '../network/socketHandler.js';
 import { Player } from './Player.js';
 import { isColliding } from '../../shared/physics.js';
@@ -9,58 +5,98 @@ import { BASE_MAP } from '../../shared/mockData.js';
 
 const activeGames = new Map();
 
-gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
-    
+gameEvents.on("GAME_STARTED", (roomId, playersList) => {
     if (!activeGames.has(roomId)) {
+        const gameLoop = setInterval(() => updatePhysics(roomId), 1000 / 60); 
+        
+        const playersMap = new Map();
+        
+        if (playersList) {
+            playersList.forEach(p => {
+                playersMap.set(p.id, new Player(p.id, p.username, "player-white", p.x, p.y));
+            });
+        }
+
         activeGames.set(roomId, { 
             map: BASE_MAP, 
-            players: new Map() 
+            players: playersMap,
+            loop: gameLoop
         });
     }
+});
+
+function updatePhysics(roomId) {
+    const game = activeGames.get(roomId);
+    if (!game) return;
+
+    for (const [id, player] of game.players.entries()) {
+        if (player.isMoving) {
+            let nextX = player.x;
+            let nextY = player.y;
+
+            if (player.direction === 'ArrowUp') nextY -= player.speed;
+            if (player.direction === 'ArrowDown') nextY += player.speed;
+            if (player.direction === 'ArrowLeft') nextX -= player.speed;
+            if (player.direction === 'ArrowRight') nextX += player.speed;
+
+            if (!isColliding(nextX, nextY, game.map)) {
+                player.x = nextX;
+                player.y = nextY;
+
+                broadcastToRoom(roomId, { 
+                    type: "PLAYER_MOVED", 
+                    payload: {
+                        id: id,
+                        x: player.x,
+                        y: player.y,
+                        direction: player.direction,
+                        isMoving: true
+                    }
+                });
+            }
+        }
+    }
+}
+
+gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
     
     const game = activeGames.get(roomId);
-
+    if (!game) {
+        return;
+    }
+    
     if (!game.players.has(playerId)) {
-        // player one 48,48
-        // player two 625,48
-        // player three 48,520
-        // player four 625,520
-        game.players.set(playerId, new Player(playerId, 48, 48)); 
+        return;
     }
 
     const player = game.players.get(playerId);
     
-    let nextX = player.x;
-    let nextY = player.y;
-    player.direction = payload.direction;
-    player.isMoving = true;
-
-    if (payload.direction === 'ArrowUp') nextY -= player.speed;
-    if (payload.direction === 'ArrowDown') nextY += player.speed;
-    if (payload.direction === 'ArrowLeft') nextX -= player.speed;
-    if (payload.direction === 'ArrowRight') nextX += player.speed;
-
-    if (!isColliding(nextX, nextY, game.map)) {
-        player.x = nextX;
-        player.y = nextY;
+    if (payload.direction === 'none') {
+        player.isMoving = false;
+        
+        broadcastToRoom(roomId, { 
+            type: "PLAYER_MOVED", 
+            payload: {
+                id: playerId,
+                x: player.x,
+                y: player.y,
+                direction: player.direction,
+                isMoving: false,
+            }
+        });
+    } else {
+        player.direction = payload.direction;
+        player.isMoving = true;
     }
+});
 
-    const playersObject = {};
-    for (const [id, p] of game.players.entries()) {
-        playersObject[id] = {
-            x: p.x,
-            y: p.y,
-            speed: p.speed,
-            direction: p.direction,
-            frame: p.frame,
-            isMoving: p.isMoving
-        };
-    }
-
-    broadcastToRoom(roomId, { 
-        type: "GAME_STATE", 
-        payload: {
-            players: playersObject
+gameEvents.on("PLAYER_DISCONNECTED", (playerId, roomId) => {
+    const game = activeGames.get(roomId);
+    if (game) {
+        game.players.delete(playerId);
+        if (game.players.size === 0) {
+            clearInterval(game.loop);
+            activeGames.delete(roomId);
         }
-    });
+    }
 });
