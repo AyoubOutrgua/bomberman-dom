@@ -35,7 +35,7 @@ export const initNetwork = () => {
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log("[Network] Received:", data.type, data.payload || "");
+      // console.log("[Network] Received:", data.type, data.payload || "");
 
       switch (data.type) {
         case "JOIN_SUCCESS":
@@ -44,6 +44,7 @@ export const initNetwork = () => {
               ...store.state.lobby,
               roomId: data.payload.roomId,
               username: data.payload.username,
+              myId: data.payload.playerId,
               error: null,
             },
           });
@@ -121,7 +122,9 @@ export const initNetwork = () => {
                 x: player.x || 48,
                 y: player.y || 48,
                 direction: "ArrowDown",
+                isMoving: false,
                 frame: 0,
+                speed: 1.5,
                 isDead: false,
                 lives: 3,
               };
@@ -144,7 +147,28 @@ export const initNetwork = () => {
 
         case "PLAYER_MOVED": {
           const playerId = data.payload.id;
-          if (!store.state.game.players[playerId]) break;
+          const currentPlayer = store.state.game.players[playerId];
+          
+          if (!currentPlayer) break;
+
+          let nextX = data.payload.x;
+          let nextY = data.payload.y;
+          
+          let nextDir = data.payload.direction; 
+          let nextIsMoving = data.payload.isMoving;
+
+          if (playerId === store.state.lobby.myId) {
+             const diffX = Math.abs(currentPlayer.x - data.payload.x);
+             const diffY = Math.abs(currentPlayer.y - data.payload.y);
+             
+             if (diffX < 24 && diffY < 24) {
+                 nextX = currentPlayer.x;
+                 nextY = currentPlayer.y;
+             }
+             
+             nextDir = currentPlayer.direction;
+             nextIsMoving = currentPlayer.isMoving;
+          }
 
           store.setState({
             game: {
@@ -152,10 +176,11 @@ export const initNetwork = () => {
               players: {
                 ...store.state.game.players,
                 [playerId]: {
-                  ...store.state.game.players[playerId],
-                  x: data.payload.x,
-                  y: data.payload.y,
-                  direction: data.payload.direction,
+                  ...currentPlayer,
+                  x: nextX,
+                  y: nextY,
+                  direction: nextDir,
+                  isMoving: nextIsMoving,
                 },
               },
             },
@@ -276,9 +301,9 @@ export const sendChatMessage = (text) => {
   }
 };
 
-export const sendPlayerMove = (x, y, direction) => {
+export const sendPlayerMove = (direction) => {
   if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "MOVE", payload: { x, y, direction } }));
+    ws.send(JSON.stringify({ type: "PLAYER_MOVED", payload: { direction } }));
   }
 };
 

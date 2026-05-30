@@ -107,7 +107,7 @@ function joinPlayer(ws, username) {
   ws.send(
     JSON.stringify({
       type: "JOIN_SUCCESS",
-      payload: { roomId: room.id, username: sanitized },
+      payload: { roomId: room.id, username: sanitized, playerId: player.id },
     }),
   );
 
@@ -176,7 +176,7 @@ function startGame(roomId) {
     payload: { map: initialMap, players: playersList },
   });
 
-  gameEvents.emit("GAME_STARTED", room.id);
+  gameEvents.emit("GAME_STARTED", room.id, playersList);
 }
 
 function handleRoomTimer(roomId) {
@@ -234,7 +234,7 @@ export function setupSockets(webs) {
             handleChatMessage(ws, data.payload, broadcastToRoom);
             break;
 
-          case "MOVE":
+          case "PLAYER_MOVED":
             if (ws.roomId && ws.playerId) {
               const room = rooms.get(ws.roomId);
               if (room?.status === "playing") {
