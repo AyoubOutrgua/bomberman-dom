@@ -9,6 +9,7 @@ export const TILE_SIZE = 48;
 // Map dims
 export const MAP_WIDTH = 15;
 export const MAP_HEIGHT = 13;
+export const BRICKS_COUNT = 10;
 
 // Tile types grid representations
 export const TILE = {
@@ -20,12 +21,10 @@ export const TILE = {
 // Players spawn positions
 export const SPAWNS = [
   { row: 1, col: 1 }, // top-left
-  { row: 1, col: 13 }, // top-right
-  { row: 11, col: 1 }, // bottom-left
-  { row: 11, col: 13 }, // bottom-right
+  { row: 1, col: MAP_WIDTH - 2 }, // top-right
+  { row: MAP_HEIGHT - 2, col: 1 }, // bottom-left
+  { row: MAP_HEIGHT - 2, col: MAP_WIDTH - 2 }, // bottom-right
 ];
-
-export const BRICKS_COUNT = 45;
 
 // ----- ANIMATIONS -----
 export const IMAGE_FRAME_SIZE = 64;

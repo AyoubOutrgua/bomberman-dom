@@ -2,43 +2,79 @@
 // randomly scatters destructible bricks avoiding 4 corner spawn zones (2×2),
 // and returns a 2D array consumed by both server logic and client renderer.
 
-import { MAP_WIDTH, MAP_HEIGHT, TILE, SPAWNS } from "../../shared/constants";
+import {
+  MAP_WIDTH,
+  MAP_HEIGHT,
+  TILE,
+  SPAWNS,
+  BRICKS_COUNT,
+} from "../../shared/constants.js";
+import { shuffleArray } from "../utils.js";
 
-const GRID = [
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-];
+export function generateMap() {
+  let map = [];
+  for (let row = 0; row < MAP_HEIGHT; row++) {
+    let mapRow = [];
+    for (let col = 0; col < MAP_WIDTH; col++) {
+      mapRow.push(isWallPos(row, col) ? TILE.WALL : TILE.FLOOR);
+    }
+    map.push(mapRow);
+  }
 
-export function getGrid() {
-  return Grid.map((row) => [...row]);
+  map = generateBricks(map);
+
+  return map;
+}
+
+function isWallPos(row, col) {
+  return (
+    row === 0 ||
+    col === 0 ||
+    row === MAP_HEIGHT - 1 ||
+    col === MAP_WIDTH - 1 ||
+    (row % 2 === 0 && col % 2 === 0)
+  );
+}
+
+function generateBricks(map) {
+  let candidates = [];
+  for (let row = 0; row < MAP_HEIGHT; row++) {
+    for (let col = 0; col < MAP_WIDTH; col++) {
+      const cell = map[row][col];
+      if (isBrickCandidate(cell, row, col)) {
+        candidates.push([row, col]);
+      }
+    }
+  }
+
+  candidates = shuffleArray(candidates);
+
+  const bricksCount = Math.min(BRICKS_COUNT, candidates.length);
+
+  for (let i = 0; i < bricksCount; i++) {
+    const [row, col] = candidates[i];
+
+    map[row][col] = TILE.BRICK;
+  }
+
+  return map;
 }
 
 function isBrickCandidate(cell, row, col) {
-  if (cell !== TILE.FLOOR) return false;
+  return cell === TILE.FLOOR && !isSafeZone(row, col);
+}
 
-  SPAWNS.forEach((spwn) => {
-    if (spwn.row === row && spwn.col === col) {
-        return
-    }
+function isSafeZone(row, col) {
+  return SPAWNS.some((spwn) => {
+    const rowDistance = Math.abs(row - spwn.row);
+    const colDistance = Math.abs(col - spwn.col);
+
+    return rowDistance <= 1 && colDistance <= 1;
   });
 }
 
-function generateBricks() {
-  const candidates = [];
-  for (let row = 0; row < HEIGHT.length; row++) {
-    for (let col = 0; col < WIDTH.length; col++) {
-      const cell = MAP[row][col];
-    }
-  }
+export function destroyBrick(map, row, col) {
+  if (map[row][col] !== TILE.BRICK) return;
+
+  map[row][col] = TILE.FLOOR;
 }

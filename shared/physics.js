@@ -1,4 +1,4 @@
-import { TILE_SIZE } from '../../../shared/constants.js';
+import { TILE_SIZE } from './constants.js';
 
 export const isColliding = (nextX, nextY, map) => {
     const MARGIN_LEFT = 10;

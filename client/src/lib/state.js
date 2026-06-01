@@ -3,32 +3,30 @@
 // events so components re-render on state transitions.
 
 import { Store } from "./framework/index.js";
+import { generateMap } from "../../../server/game/MapGenerator.js";
+import { SPAWNS, TILE_SIZE } from "../../../shared/constants.js";
 
-const BASE_MAP = [
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-];
-
-export const initialState = {
-  map: BASE_MAP,
-  player: {
-    x: 48,
-    y: 48,
+function createPlayer(spwnIndex) {
+  const spawn = SPAWNS[spwnIndex];
+  return {
+    x: spawn.col * TILE_SIZE,
+    y: spawn.row * TILE_SIZE,
     speed: 1.5,
     direction: "ArrowDown",
     frame: 0,
     isMoving: false,
+  };
+}
+
+export const initialState = {
+  roomId: "room-01",
+  myId: "P1",
+  map: generateMap(),
+  players: {
+    P1: createPlayer(0),
+    P2: createPlayer(1),
+    P3: createPlayer(2),
+    P4: createPlayer(3),
   },
 };
 

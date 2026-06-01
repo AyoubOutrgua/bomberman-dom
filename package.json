@@ -2,16 +2,11 @@
   "name": "bomberman-dom",
   "version": "1.0.0",
   "type": "module",
-  "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "Multiplayer Bomberman DOM game",
   "dependencies": {
-    "ws": "^8.21.0"
+    "ws": "^8.20.1"
   }
 }

@@ -3,7 +3,12 @@
 // animation, explosion overlays, and power-up item drops as children.
 
 import { hxs } from "../lib/framework/index.js";
-import { TILE } from "../../../shared/constants.js";
+import {
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  TILE_SIZE,
+  TILE,
+} from "../../../shared/constants.js";
 
 const TILE_CLASSES = {
   [TILE.FLOOR]: "tile-floor",
@@ -11,11 +16,17 @@ const TILE_CLASSES = {
   [TILE.BRICK]: "tile-brick",
 };
 
-export default function Board(grid) {
+export default function Board(grid, entities = []) {
   const tiles = grid.flat().map((cell, index) => {
     const tileClass = TILE_CLASSES[cell] || "tile-floor";
     return hxs("div", { class: `tile ${tileClass}`, key: index });
   });
 
-  return hxs("div", { id: "board" }, ...tiles);
+  const boardStyle = `
+    --cols: ${MAP_WIDTH};
+    --rows: ${MAP_HEIGHT};
+    --tile-size: ${TILE_SIZE}px;
+  `;
+
+  return hxs("div", { id: "board", style: boardStyle }, ...tiles, ...entities);
 }
