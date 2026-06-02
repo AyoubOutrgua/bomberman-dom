@@ -8,7 +8,6 @@ import { gameEvents, broadcastToRoom } from '../network/socketHandler.js';
 
 import {TILE_SIZE, TILE, MAP_HEIGHT, MAP_WIDTH } from '../../shared/constants.js';
 
-// TASK 4 FIX: Math.floor باش تحسب الـ Grid مقاد
 const tileCol = (px) => Math.floor((px + 24) / TILE_SIZE);
 const tileRow = (py) => Math.floor((py + 33) / TILE_SIZE);
 
@@ -53,7 +52,6 @@ export function placeBomb(game, roomId, playerId) {
 
 
 
-// بهادو:
 const col = tileCol(player.x);
 const row = tileRow(player.y);
 
@@ -114,7 +112,6 @@ export function detonateBomb(game, roomId, bomb) {
         owner.score += deadPlayers.length * 500;
     }
 
-    // TASK 4 FIX: السكور كيتصيفط مع الـ Payload للـ Client
     broadcastToRoom(roomId, {
         type: 'BOMB_EXPLODED',
         payload: {

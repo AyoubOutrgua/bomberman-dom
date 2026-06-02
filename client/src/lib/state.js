@@ -29,24 +29,18 @@ const actions = {
         bombs.forEach(b => { b.frame = (b.frame + 1) % 4; });
     },
     APPLY_EXPLOSION(state, { bombId, explosionCells, destroyedWalls, deadPlayers, droppedItems, scoreUpdate }) {
-        // حيد القنبلة
         state.game.bombs = state.game.bombs.filter(b => b.id !== bombId);
         
-        // هرس الحيوط
         destroyedWalls.forEach(({ row, col }) => { state.game.map[row][col] = 0; });
         
-        // زيد العافية (بـ TTL باش تمسح من بعد)
         state.game.explosions.push({ id: bombId, cells: explosionCells, ttl: 600 });
         
-        // قتل الدراري المضروبين
         deadPlayers.forEach(id => {
             if (state.game.players[id]) state.game.players[id].isDead = true;
         });
         
-        // طيح الـ Power-ups
         droppedItems.forEach(item => { state.game.items.push(item); });
 
-        // اپديت ديال السكور
         if (scoreUpdate && state.game.stats[scoreUpdate.playerId]) {
             state.game.stats[scoreUpdate.playerId].score = scoreUpdate.score;
         }
