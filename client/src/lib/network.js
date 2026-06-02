@@ -1,6 +1,10 @@
 import { store } from "./state.js";
 import { navigateTo } from "./framework/index.js";
 
+// TASK 4: Import Event Manager to use Actions and prevent FPS drops
+import { createEventManager } from "./framework/index.js";
+const { dispatch } = createEventManager(store);
+
 export let ws = null;
 
 const INITIAL_STATE = {
@@ -19,6 +23,10 @@ const INITIAL_STATE = {
     map: [],
     players: {},
     bombs: [],
+    // TASK 4: Added empty combat arrays
+    explosions: [],
+    items: [],
+    stats: {},
     startTime: null,
   },
 };
@@ -35,7 +43,6 @@ export const initNetwork = () => {
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      // console.log("[Network] Received:", data.type, data.payload || "");
 
       switch (data.type) {
         case "JOIN_SUCCESS":
@@ -115,6 +122,10 @@ export const initNetwork = () => {
 
         case "START_GAME": {
           const newPlayers = {};
+          
+          // TASK 4: Initialize Stats at the beginning of the match
+          const initialStats = {};
+
           if (data.payload?.players) {
             data.payload.players.forEach((player) => {
               newPlayers[player.id] = {
@@ -128,6 +139,9 @@ export const initNetwork = () => {
                 isDead: false,
                 lives: 3,
               };
+
+              // TASK 4: Assign initial lives, score, and power-ups for each player
+              initialStats[player.id] = { lives: 3, score: 0, maxBombs: 1, activeBombs: 0, blastRadius: 1, speed: 1.5 };
             });
           }
 
@@ -139,6 +153,10 @@ export const initNetwork = () => {
               map: data.payload?.map || store.state.map || [],
               players: newPlayers,
               bombs: [],
+              // TASK 4: Inject combat arrays into the State when the match starts
+              explosions: [], 
+              items: [],      
+              stats: initialStats, 
             },
           });
           navigateTo("/map");
@@ -148,26 +166,26 @@ export const initNetwork = () => {
         case "PLAYER_MOVED": {
           const playerId = data.payload.id;
           const currentPlayer = store.state.game.players[playerId];
-          
+
           if (!currentPlayer) break;
 
           let nextX = data.payload.x;
           let nextY = data.payload.y;
-          
-          let nextDir = data.payload.direction; 
+
+          let nextDir = data.payload.direction;
           let nextIsMoving = data.payload.isMoving;
 
           if (playerId === store.state.lobby.myId) {
-             const diffX = Math.abs(currentPlayer.x - data.payload.x);
-             const diffY = Math.abs(currentPlayer.y - data.payload.y);
-             
-             if (diffX < 24 && diffY < 24) {
-                 nextX = currentPlayer.x;
-                 nextY = currentPlayer.y;
-             }
-             
-             nextDir = currentPlayer.direction;
-             nextIsMoving = currentPlayer.isMoving;
+            const diffX = Math.abs(currentPlayer.x - data.payload.x);
+            const diffY = Math.abs(currentPlayer.y - data.payload.y);
+
+            if (diffX < 24 && diffY < 24) {
+              nextX = currentPlayer.x;
+              nextY = currentPlayer.y;
+            }
+
+            nextDir = currentPlayer.direction;
+            nextIsMoving = currentPlayer.isMoving;
           }
 
           store.setState({
@@ -198,46 +216,18 @@ export const initNetwork = () => {
                   id: data.payload.bombId,
                   x: data.payload.x,
                   y: data.payload.y,
+                  // TASK 4: Add frame and ownerId (required for Animation and Score calculation)
+                  frame: 0, 
+                  ownerId: data.payload.ownerId, 
                 },
               ],
             },
           });
           break;
-
+        
+        // TASK 4: Replaced messy setState with a batched Action
         case "BOMB_EXPLODED": {
-          const remainingBombs = store.state.game.bombs.filter(
-            (bomb) => bomb.id !== data.payload.bombId,
-          );
-
-          let updatedMap = store.state.game.map;
-          if (data.payload.destroyedWalls?.length > 0) {
-            updatedMap = store.state.game.map.map((row) => [...row]);
-            data.payload.destroyedWalls.forEach((wall) => {
-              updatedMap[wall.row][wall.col] = 0;
-            });
-          }
-
-          let updatedPlayers = store.state.game.players;
-          if (data.payload.deadPlayers?.length > 0) {
-            updatedPlayers = { ...store.state.game.players };
-            data.payload.deadPlayers.forEach((playerId) => {
-              if (updatedPlayers[playerId]) {
-                updatedPlayers[playerId] = {
-                  ...updatedPlayers[playerId],
-                  isDead: true,
-                };
-              }
-            });
-          }
-
-          store.setState({
-            game: {
-              ...store.state.game,
-              bombs: remainingBombs,
-              map: updatedMap,
-              players: updatedPlayers,
-            },
-          });
+          dispatch("APPLY_EXPLOSION", data.payload);
           break;
         }
 
@@ -255,6 +245,13 @@ export const initNetwork = () => {
                   isDead: true,
                 },
               },
+              stats: {
+                ...store.state.game.stats,
+                [id]: {
+                  ...store.state.game.stats[id],
+                  lives: 0,
+                },
+              },
             },
           });
           break;
@@ -269,6 +266,49 @@ export const initNetwork = () => {
             },
           });
           break;
+
+        // TASK 4: Deduct lives in Stats when a player is hit
+    case "PLAYER_HIT": {
+          const hitId = data.payload.playerId;
+          if (!store.state.game.stats[hitId]) break;
+          store.setState({
+            game: {
+              ...store.state.game,
+              stats: {
+                ...store.state.game.stats,
+                [hitId]: {
+                  ...store.state.game.stats[hitId],
+                  lives: data.payload.livesLeft,
+                },
+              },
+            },
+          });
+          break;
+        }
+
+        // TASK 4: Collect Power-ups and sync changes from the server
+        case "ITEM_COLLECTED": {
+          dispatch("COLLECT_ITEM", {
+            itemId: data.payload.itemId,
+            playerId: data.payload.playerId,
+            itemType: data.payload.itemType
+          });
+
+          // Sync server authoritative stats
+          store.setState({
+            game: {
+              ...store.state.game,
+              stats: {
+                ...store.state.game.stats,
+                [data.payload.playerId]: { 
+                  ...store.state.game.stats[data.payload.playerId], 
+                  ...data.payload.newStats 
+                },
+              },
+            },
+          });
+          break;
+        }
 
         default:
           console.warn("[Network] Unknown message type:", data.type);

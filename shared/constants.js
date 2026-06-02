@@ -35,3 +35,16 @@ export const FRAMES = {
   ArrowDown: { row: 2, cols: 8 },
   ArrowRight: { row: 3, cols: 8 },
 };
+
+
+//---bombs---
+// Combat Constants
+export const BOMB_TIMER = 3000;
+export const BLAST_RADIUS_DEFAULT = 1;
+export const BLAST_RADIUS_MAX = 5;
+export const BOMB_MAX_DEFAULT = 1;
+export const SPEED_DEFAULT = 1.5;
+export const SPEED_MAX = 3.0;
+export const SPEED_INCREMENT = 0.5;
+export const ITEM_TYPES = { BOMB: 'bomb', FLAME: 'flame', SPEED: 'speed' };
+export const ITEM_DROP_CHANCE = 0.3;

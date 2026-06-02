@@ -22,14 +22,18 @@ export const PlayersEntity = (players) => {
       
         const colorClass = playersClasses[playerIndex];
       
+        const deadStyle = p.isDead ? 'opacity: 0.3; pointer-events: none;' : '';
+        const deadClass = p.isDead ? ' player-dead' : '';
+      
         playerElements.push(hxs('div', {
-          class: `player ${colorClass}`, 
+          class: `player ${colorClass}${deadClass}`, 
           style: `
               left: ${offsetX}px;
               top: ${offsetY}px;
               width: ${IMAGE_FRAME_SIZE}px;
               height: ${IMAGE_FRAME_SIZE}px;
               background-position: -${bgPosX}px -${bgPosY}px;
+              ${deadStyle}
           `
         }));
 

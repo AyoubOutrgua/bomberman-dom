@@ -1,48 +1,65 @@
-// Reactive state store: holds client-side game state — phase (lobby/active),
-// player list, map grid, bomb positions, scores, chat history. Emits change
-// events so components re-render on state transitions.
-
 import { Store } from './framework/index.js';
-import { getGrid } from '../../../server/game/MapGenerator.js';
-const BASE_MAP = getGrid();
+
 export const initialState = {
-    roomId: 'room-01',
-    myId: 'P1',
-    map: BASE_MAP,      
-    players: {
-        'P1': {
-            x: 48,
-            y: 48,
-            speed: 1.5,
-            direction: 'ArrowDown',
-            frame: 0,
-            isMoving: false
-        },
-        'P2': {
-            x: 625,
-            y: 48,
-            speed: 1.5,
-            direction: 'ArrowDown',
-            frame: 0,
-            isMoving: false
-        },
-        'P3': {
-            x: 48,
-            y: 520,
-            speed: 1.5,
-            direction: 'ArrowDown',
-            frame: 0,
-            isMoving: false
-        },
-        'P4': {
-            x: 625,
-            y: 520,
-            speed: 1.5,
-            direction: 'ArrowDown',
-            frame: 0,
-            isMoving: false
+  currentView: 'login',
+  lobby: {
+    roomId: null,
+    username: null,
+    players: [],
+    count: 0,
+    timeLeft: 0,
+    error: null,
+    phase: 'waiting',
+  },
+  chat: [],
+  game: {
+    status: 'waiting',
+    map: [],
+    players: {},
+    bombs: [],
+    explosions: [],
+    items: [],
+    stats: {},
+    startTime: null,
+  },
+};
+
+const actions = {
+    TICK_BOMB_FRAMES(state, { bombs }) {
+        bombs.forEach(b => { b.frame = (b.frame + 1) % 4; });
+    },
+    APPLY_EXPLOSION(state, { bombId, explosionCells, destroyedWalls, deadPlayers, droppedItems, scoreUpdate }) {
+        // حيد القنبلة
+        state.game.bombs = state.game.bombs.filter(b => b.id !== bombId);
+        
+        // هرس الحيوط
+        destroyedWalls.forEach(({ row, col }) => { state.game.map[row][col] = 0; });
+        
+        // زيد العافية (بـ TTL باش تمسح من بعد)
+        state.game.explosions.push({ id: bombId, cells: explosionCells, ttl: 600 });
+        
+        // قتل الدراري المضروبين
+        deadPlayers.forEach(id => {
+            if (state.game.players[id]) state.game.players[id].isDead = true;
+        });
+        
+        // طيح الـ Power-ups
+        droppedItems.forEach(item => { state.game.items.push(item); });
+
+        // اپديت ديال السكور
+        if (scoreUpdate && state.game.stats[scoreUpdate.playerId]) {
+            state.game.stats[scoreUpdate.playerId].score = scoreUpdate.score;
         }
+    },
+
+    COLLECT_ITEM(state, { itemId, playerId, itemType }) {
+        state.game.items = state.game.items.filter(i => i.id !== itemId);
+        const s = state.game.stats[playerId];
+        if (!s) return;
+        if (itemType === 'speed') s.speed = Math.min(s.speed + 0.5, 3.0);
+        if (itemType === 'bomb') s.maxBombs = Math.min(s.maxBombs + 1, 8);
+        if (itemType === 'flame') s.blastRadius = Math.min(s.blastRadius + 1, 5);
     }
 };
 
-export const store = new Store(initialState);
+export const store = new Store(initialState, actions);

@@ -20,5 +20,10 @@ export class Player {
         
         this.bombCount = 1;
         this.blastRadius = 1;
+
+        // --
+        this.maxBombs = 1;
+        this.score = 0;
+        this.invincibleUntil = 0;
     }
 }

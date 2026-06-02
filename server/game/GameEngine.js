@@ -3,6 +3,7 @@ import { Player } from './Player.js';
 import { isColliding } from '../../shared/physics.js';
 import { getGrid } from './MapGenerator.js';
 
+import { placeBomb, checkItemPickups } from './BombEngine.js';
 const activeGames = new Map();
 
 gameEvents.on("GAME_STARTED", (roomId, playersList) => {
@@ -22,7 +23,11 @@ gameEvents.on("GAME_STARTED", (roomId, playersList) => {
         activeGames.set(roomId, { 
             map: BASE_MAP, 
             players: playersMap,
-            loop: gameLoop
+            loop: gameLoop,
+
+            //
+                bombs: new Map(),
+                    items: new Map(),
         });
     }
 });
@@ -32,6 +37,7 @@ function updatePhysics(roomId) {
     if (!game) return;
 
     for (const [id, player] of game.players.entries()) {
+        if (!player.isAlive) continue;
         if (player.isMoving) {
             let nextX = player.x;
             let nextY = player.y;
@@ -58,6 +64,9 @@ function updatePhysics(roomId) {
             }
         }
     }
+    
+        checkItemPickups(game, roomId);
+    
 }
 
 gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
@@ -72,6 +81,7 @@ gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
     }
 
     const player = game.players.get(playerId);
+    if (!player.isAlive) return;
     
     if (payload.direction === 'none') {
         player.isMoving = false;
@@ -101,4 +111,12 @@ gameEvents.on("PLAYER_DISCONNECTED", (playerId, roomId) => {
             activeGames.delete(roomId);
         }
     }
+});
+
+
+// Bomb placement
+gameEvents.on('BOMB_PLACED', (playerId, roomId) => {
+    const game = activeGames.get(roomId);
+    if (!game) return;
+    placeBomb(game, roomId, playerId);
 });
