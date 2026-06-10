@@ -128,3 +128,17 @@
   background-size: auto;
   z-index: 20;
 }
+
+#game-timer-display{
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: bold;
+  z-index: 1000;
+  text-shadow: 2px 2px 0px black;
+  pointer-events: none;
+}
