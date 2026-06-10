@@ -70,6 +70,12 @@ export const render = (vnode, container) => {
 // diff() — Compare oldVNode vs newVNode, returns a patch() function
 export const diff = (oldVNode, newVNode) => {
     
+    if (oldVNode === newVNode) {
+        return function patch(realDomNode) {
+            return realDomNode;
+        }
+    }
+
     // Case 1: node removed
     if (newVNode === undefined && oldVNode !== undefined) {
         return function patch(realDomNode) {
@@ -111,10 +117,16 @@ export const diff = (oldVNode, newVNode) => {
             }
         } else {
             // Case 4b: normal element -> patch props + reconcile children
-            const patchProps = diffProps(oldVNode.props, newVNode.props);
-
             const oldChildren = oldVNode.children || [];
             const newChildren = newVNode.children || [];
+            
+            if (oldChildren.length === 0 && newChildren.length === 0 && arePropsEqual(oldVNode.props, newVNode.props)) {
+                return function patch(realDomNode) {
+                    return realDomNode;
+                }
+            }
+
+            const patchProps = diffProps(oldVNode.props, newVNode.props);
 
             return function patch(realDomNode) {
                 const newRealDomNode = patchProps(realDomNode);
@@ -195,3 +207,15 @@ export const diffProps = (oldProps, newProps) => {
         return realDomNode;
     }
 }
+
+export const arePropsEqual = (oldProps, newProps) => {
+    const oldKeys = Object.keys(oldProps || {});
+    const newKeys = Object.keys(newProps || {});
+    if (oldKeys.length !== newKeys.length) return false;
+    
+    for (let i = 0; i < oldKeys.length; i++) {
+        const key = oldKeys[i];
+        if (oldProps[key] !== newProps[key]) return false;
+    }
+    return true;
+};
