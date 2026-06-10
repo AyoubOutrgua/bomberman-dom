@@ -55,14 +55,14 @@ export const Board = (state) => {
       });
     });
   }
-     
+
     const players = PlayersEntity(state.game.players);
   
     const board = hxs('div', 
       { 
         id: 'board',
         tabindex: '0',
-        style: 'outline: none;',
+        style: 'outline: none; --cols: 15; --rows: 13; --tile-size: 48px;',
         onkeydown: handleKeyDown,
         onkeyup: handleKeyUp,
       }, ...tiles, ...players);

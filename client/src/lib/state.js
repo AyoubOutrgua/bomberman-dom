@@ -3,10 +3,8 @@
 // events so components re-render on state transitions.
 
 import { Store } from "./framework/index.js";
-import { generateMap } from "../../../server/game/MapGenerator.js";
+import { BASE_MAP } from "../../../server/game/MapGenerator.js";
 import { SPAWNS, TILE_SIZE } from "../../../shared/constants.js";
-
-const BASE_MAP = generateMap();
 
 function createPlayer(spwnIndex) {
   const spawn = SPAWNS[spwnIndex];
@@ -23,7 +21,7 @@ function createPlayer(spwnIndex) {
 export const initialState = {
   roomId: "room-01",
   myId: "P1",
-  map: generateMap(),
+  map: BASE_MAP,
   players: {
     P1: createPlayer(0),
     P2: createPlayer(1),

@@ -21,15 +21,10 @@ export const TILE = {
 // Players spawn positions
 export const SPAWNS = [
   { row: 1, col: 1 }, // top-left
-  { row: 1, col: 13 }, // top-right
-  { row: 11, col: 1 }, // bottom-left
-  { row: 11, col: 13 }, // bottom-right
+  { row: 1, col: MAP_WIDTH - 2 }, // top-right
+  { row: MAP_HEIGHT - 2, col: 1 }, // bottom-left
+  { row: MAP_HEIGHT - 2, col: MAP_WIDTH - 2 }, // bottom-right
 ];
-
-//   { row: 1, col: MAP_WIDTH - 2 }, // top-right
-//   { row: MAP_HEIGHT - 2, col: 1 }, // bottom-left
-//   { row: MAP_HEIGHT - 2, col: MAP_WIDTH - 2 }, // bottom-right
-// ];
 
 // ----- ANIMATIONS -----
 export const IMAGE_FRAME_SIZE = 64;

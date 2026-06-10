@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { handleChatMessage } from "./chatController.js";
-import { getGrid } from "../game/MapGenerator.js";
+import { BASE_MAP } from "../game/MapGenerator.js";
 import { SPAWNS, TILE_SIZE } from "../../shared/constants.js";
 
 export const gameEvents = new EventEmitter();
@@ -141,7 +141,7 @@ function scheduleNextTick(roomId) {
       if (r.phase === "soft_countdown") {
         r.phase = "locked_countdown";
         r.status = "locked";
-        r.timeLeft = 10;
+        r.timeLeft = 1;
         scheduleNextTick(roomId);
       } else if (r.phase === "locked_countdown") {
         r.timer = null;
@@ -159,8 +159,6 @@ function startGame(roomId) {
 
   room.status = "playing";
 
-  const initialMap = getGrid();
-
   const playersList = room.players.map((p, index) => {
     const spawn = SPAWNS[index] || SPAWNS[0];
     return {
@@ -173,7 +171,7 @@ function startGame(roomId) {
 
   broadcastToRoom(roomId, {
     type: "START_GAME",
-    payload: { map: initialMap, players: playersList },
+    payload: { map: BASE_MAP, players: playersList },
   });
 
   gameEvents.emit("GAME_STARTED", room.id, playersList);
@@ -202,7 +200,7 @@ function handleRoomTimer(roomId) {
     }
     room.phase = "locked_countdown";
     room.status = "locked";
-    room.timeLeft = 10;
+    room.timeLeft = 1;
     broadcastToRoom(roomId, {
       type: "TIMER_UPDATE",
       payload: { timeLeft: room.timeLeft, phase: room.phase },
@@ -214,7 +212,7 @@ function handleRoomTimer(roomId) {
   if (room.players.length >= 2 && !room.timer) {
     room.phase = "soft_countdown";
     room.status = "waiting";
-    room.timeLeft = 20;
+    room.timeLeft = 2;
     scheduleNextTick(roomId);
   }
 }
