@@ -151,25 +151,6 @@ export const initNetwork = () => {
           
           if (!currentPlayer) break;
 
-          let nextX = data.payload.x;
-          let nextY = data.payload.y;
-          
-          let nextDir = data.payload.direction; 
-          let nextIsMoving = data.payload.isMoving;
-
-          if (playerId === store.state.lobby.myId) {
-             const diffX = Math.abs(currentPlayer.x - data.payload.x);
-             const diffY = Math.abs(currentPlayer.y - data.payload.y);
-             
-             if (diffX < 24 && diffY < 24) {
-                 nextX = currentPlayer.x;
-                 nextY = currentPlayer.y;
-             }
-             
-             nextDir = currentPlayer.direction;
-             nextIsMoving = currentPlayer.isMoving;
-          }
-
           store.setState({
             game: {
               ...store.state.game,
@@ -177,10 +158,10 @@ export const initNetwork = () => {
                 ...store.state.game.players,
                 [playerId]: {
                   ...currentPlayer,
-                  x: nextX,
-                  y: nextY,
-                  direction: nextDir,
-                  isMoving: nextIsMoving,
+                  x: data.payload.x,
+                  y: data.payload.y,
+                  direction: data.payload.direction,
+                  isMoving: data.payload.isMoving,
                 },
               },
             },
