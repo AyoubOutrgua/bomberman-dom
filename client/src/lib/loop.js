@@ -2,7 +2,12 @@ import { store } from './state.js';
 import { FRAMES } from '../../../shared/constants.js';
 import { sendPlayerMove } from '../lib/network.js';
 
-export const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+export const keys = {
+  ArrowUp: false,
+  ArrowDown: false,
+  ArrowLeft: false,
+  ArrowRight: false,
+};
 
 let isRunning = false;
 let lastSentDir = 'none';

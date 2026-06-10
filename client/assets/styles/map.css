@@ -41,11 +41,11 @@ canvas,
    BOARD
    =========================== */
 #board {
-  width: 720px;
-  height: 624px;
+  /* width: 720px; */
+  /* height: 624px; */
   display: grid;
-  grid-template-columns: repeat(15, 48px);
-  grid-template-rows: repeat(13, 48px);
+  grid-template-columns: repeat(var(--cols), var(--tile-size));
+  grid-template-rows: repeat(var(--rows), var(--tile-size));
   background: #111;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),

@@ -9,6 +9,7 @@ export const TILE_SIZE = 48;
 // Map dims
 export const MAP_WIDTH = 15;
 export const MAP_HEIGHT = 13;
+export const BRICKS_COUNT = 10;
 
 // Tile types grid representations
 export const TILE = {
@@ -25,7 +26,10 @@ export const SPAWNS = [
   { row: 11, col: 13 }, // bottom-right
 ];
 
-export const BRICKS_COUNT = 45;
+//   { row: 1, col: MAP_WIDTH - 2 }, // top-right
+//   { row: MAP_HEIGHT - 2, col: 1 }, // bottom-left
+//   { row: MAP_HEIGHT - 2, col: MAP_WIDTH - 2 }, // bottom-right
+// ];
 
 // ----- ANIMATIONS -----
 export const IMAGE_FRAME_SIZE = 64;
