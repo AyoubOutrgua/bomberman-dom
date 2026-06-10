@@ -8,6 +8,8 @@ export const keys = {
   ArrowLeft: false,
   ArrowRight: false,
 };
+// TASK 4: Import Bomb Animator for Combat ticks
+import { tickBombAnimations } from '../components/BombAnimator.js';
 
 let isRunning = false;
 let lastSentDir = 'none';
@@ -33,7 +35,7 @@ export const gameLoop = () => {
   }
 
   const p = players[myId];
-  if (p) {
+  if (p && !p.isDead) {
       let currentDir = 'none';
       let isMoving = false;
 
@@ -94,6 +96,19 @@ export const gameLoop = () => {
       }
 
       timerDOM.style.opacity = timerDOM.style.opacity === '1' ? '0.99' : '1';
+  }
+     
+  // TASK 4: Tick combat animations and explosions at 60FPS in-place (No VDOM spam)
+  tickBombAnimations();
+
+  const explosions = store.state.game?.explosions;
+  if (explosions?.length) {
+      for (let i = explosions.length - 1; i >= 0; i--) {
+          explosions[i].ttl -= 16;
+          if (explosions[i].ttl <= 0) {
+              explosions.splice(i, 1); 
+          }
+      }
   }
 
   requestAnimationFrame(gameLoop);

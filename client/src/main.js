@@ -14,6 +14,8 @@ import { Login } from "./components/login.js";
 import { Lobby } from "./components/Lobby.js";
 import { Board } from "./components/Board.js";
 import { Chat } from "./components/Chat.js";
+// TASK 4: Import CombatUI for the HUD
+import { CombatUI } from "./components/CombatUI.js";
 
 initNetwork();
 initRouter(store);
@@ -99,13 +101,19 @@ const appView = (state) => {
     case "lobby":
         return mainLayout(Lobby(state), state);
     case "map":
-
         setTimeout(() => {
             const wrapper = document.getElementById("board");
             if (wrapper) wrapper.focus();
         }, 0);
 
-        return mainLayout(Board(state), state);
+        // TASK 4: Render CombatUI alongside Board inside a wrapper
+        return mainLayout(
+            hxs("div", { id: "game-wrapper" },
+                Board(state),
+                CombatUI(state)
+            ),
+            state
+        );
     default:
         return NotFound();
   }

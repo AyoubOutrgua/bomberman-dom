@@ -16,29 +16,31 @@ export const PlayersEntity = (players) => {
   const playerElements = [];
   let playerIndex = 0;
 
-  for (const playerId in players) {
-    const p = players[playerId];
-
-    const bgPosX = p.frame * IMAGE_FRAME_SIZE;
-    const bgPosY = FRAMES[p.direction].row * IMAGE_FRAME_SIZE;
-
-    const offsetX = p.x - 8;
-    const offsetY = p.y - 16;
-
-    const colorClass = playersClasses[playerIndex];
-
-    playerElements.push(
-      hxs("div", {
-        class: `player ${colorClass}`,
-        style: `
+    for (const playerId in players) {
+        const p = players[playerId];
+        
+        const bgPosX = p.frame * IMAGE_FRAME_SIZE; 
+        const bgPosY = FRAMES[p.direction].row * IMAGE_FRAME_SIZE;
+      
+        const offsetX = p.x - 8;
+        const offsetY = p.y - 16;
+      
+        const colorClass = playersClasses[playerIndex];
+      
+        const deadStyle = p.isDead ? 'opacity: 0.3; pointer-events: none;' : '';
+        const deadClass = p.isDead ? ' player-dead' : '';
+      
+        playerElements.push(hxs('div', {
+          class: `player ${colorClass} ${deadClass}`, 
+          style: `
               left: ${offsetX}px;
               top: ${offsetY}px;
               width: ${IMAGE_FRAME_SIZE}px;
               height: ${IMAGE_FRAME_SIZE}px;
               background-position: -${bgPosX}px -${bgPosY}px;
-          `,
-      }),
-    );
+              ${deadStyle}
+          `
+        }));
 
     playerIndex++;
   }

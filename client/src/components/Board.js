@@ -7,9 +7,24 @@ import { PlayersEntity } from './PlayersEntity.js';
 import { keys } from '../lib/loop.js';
 import { sendPlayerMove } from '../lib/network.js';
 
+// TASK 4: Import combat entities and place bomb network function
+import { BombsEntity } from './BombsEntity.js';
+import { ExplosionsEntity } from './ExplosionsEntity.js';
+import { ItemsEntity } from './ItemsEntity.js';
+import { sendPlaceBomb } from '../lib/network.js';
+
+//----------------
+
 const keyupTimeouts = {};
 
 const handleKeyDown = (e) => {
+    // TASK 4: Handle spacebar for placing bombs without scrolling the page
+    if (e.key === ' ') {
+        e.preventDefault();
+        sendPlaceBomb();
+        return;
+    }
+
     if (keys[e.key] !== undefined) {
         
         if (keyupTimeouts[e.key]) {
@@ -58,6 +73,7 @@ export const Board = (state) => {
 
     const players = PlayersEntity(state.game.players);
   
+    // TASK 4: Inject combat entities (Bombs, Explosions, Items) into the board rendering
     const board = hxs('div', 
       { 
         id: 'board',
@@ -65,6 +81,12 @@ export const Board = (state) => {
         style: 'outline: none; --cols: 15; --rows: 13; --tile-size: 48px;',
         onkeydown: handleKeyDown,
         onkeyup: handleKeyUp,
-      }, ...tiles, ...players);
+      }, 
+      ...tiles, 
+      ...BombsEntity(state.game.bombs),
+      ...ExplosionsEntity(state.game.explosions),
+      ...ItemsEntity(state.game.items),
+      ...players
+    );
     return board;
 };
