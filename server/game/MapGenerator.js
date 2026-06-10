@@ -26,7 +26,6 @@ export function generateMap() {
   return map;
 }
 
-export const BASE_MAP = generateMap();
 
 function isWallPos(row, col) {
   return (

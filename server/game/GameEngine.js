@@ -1,7 +1,7 @@
 import { gameEvents, broadcastToRoom } from '../network/socketHandler.js';
 import { Player } from './Player.js';
 import { isColliding } from '../../shared/physics.js';
-import { BASE_MAP } from './MapGenerator.js';
+import { BASE_MAP } from '../network/socketHandler.js';
 
 import { placeBomb, checkItemPickups } from './BombEngine.js';
 const activeGames = new Map();

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { handleChatMessage } from "./chatController.js";
-import { BASE_MAP } from "../game/MapGenerator.js";
+import { generateMap } from "../game/MapGenerator.js";
 import { SPAWNS, TILE_SIZE } from "../../shared/constants.js";
 
 export const gameEvents = new EventEmitter();
@@ -153,9 +153,13 @@ function scheduleNextTick(roomId) {
   }, 1000);
 }
 
+export let BASE_MAP;
+
 function startGame(roomId) {
   const room = rooms.get(roomId);
   if (!room) return;
+
+  BASE_MAP = generateMap();
 
   room.status = "playing";
 
