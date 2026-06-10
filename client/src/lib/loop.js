@@ -1,18 +1,20 @@
-// requestAnimationFrame game loop: drives 60fps rendering cycles. Polls
-// state diffs, triggers framework re-render, handles keyboard input, and
-// provides delta-time for smooth animation interpolation.
-
 import { store } from './state.js';
-import { isColliding } from '../../../shared/physics.js';
 import { FRAMES } from '../../../shared/constants.js';
+import { sendPlayerMove } from '../lib/network.js';
 
 export const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
 
 let isRunning = false;
+let lastSentDir = 'none';
+
+let startTime = null;
+let timerDOM = null;
+let lastSeconds = -1;
 
 export const startGameLoop = () => {
     if (isRunning) return;
     isRunning = true;
+    startTime = Date.now();
     requestAnimationFrame(gameLoop);
 };
 
@@ -27,32 +29,31 @@ export const gameLoop = () => {
 
   const p = players[myId];
   if (p) {
+      let currentDir = 'none';
       let isMoving = false;
-      let newDir = p.direction;
-      let nextX = p.x;
-      let nextY = p.y;
 
-      if (keys.ArrowUp)    { nextY -= p.speed; newDir = 'ArrowUp';    isMoving = true; }
-      if (keys.ArrowDown)  { nextY += p.speed; newDir = 'ArrowDown';  isMoving = true; }
-      if (keys.ArrowLeft)  { nextX -= p.speed; newDir = 'ArrowLeft';  isMoving = true; }
-      if (keys.ArrowRight) { nextX += p.speed; newDir = 'ArrowRight'; isMoving = true; }
+      if (keys.ArrowUp)    { currentDir = 'ArrowUp'; isMoving = true; }
+      else if (keys.ArrowDown)  { currentDir = 'ArrowDown'; isMoving = true; }
+      else if (keys.ArrowLeft)  { currentDir = 'ArrowLeft'; isMoving = true; }
+      else if (keys.ArrowRight) { currentDir = 'ArrowRight'; isMoving = true; }
+
+      if (currentDir !== 'none') {
+          sendPlayerMove(currentDir);
+      } else if (lastSentDir !== 'none') {
+          sendPlayerMove('none'); 
+      }
+      lastSentDir = currentDir;
 
       if (isMoving) {    
         p.frameCounter = (p.frameCounter || 0) + 1;
         if (p.frameCounter > 5) { 
-            p.frame = (p.frame + 1) % FRAMES[newDir].cols;
+            p.frame = (p.frame + 1) % FRAMES[currentDir].cols;
             p.frameCounter = 0;
         }
+        p.direction = currentDir;
       } else {
-        p.frame = 0;
+        if (p.frame !== 0) p.frame = 0;
       }
-
-      if (isMoving && !isColliding(nextX, nextY, store.state.game.map)) {
-          p.x = nextX;
-          p.y = nextY;
-      }
-      p.direction = newDir;
-      p.isMoving = isMoving;
   }
 
   for (const id in players) {
@@ -66,8 +67,28 @@ export const gameLoop = () => {
               enemy.frameCounter = 0;
           }
       } else {
-          enemy.frame = 0;
+          if (enemy.frame !== 0) enemy.frame = 0;
       }
+  }
+
+  if (!timerDOM) {
+      timerDOM = document.createElement('div');
+      timerDOM.id = 'game-timer-display';
+      document.body.appendChild(timerDOM);
+  }
+
+  if (timerDOM && startTime) {
+      const elapsed = Date.now() - startTime;
+      const totalSeconds = Math.floor(elapsed / 1000);
+      
+      if (totalSeconds !== lastSeconds) {
+          const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+          const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+          timerDOM.innerText = `${minutes}:${seconds}`;
+          lastSeconds = totalSeconds;
+      }
+
+      timerDOM.style.opacity = timerDOM.style.opacity === '1' ? '0.99' : '1';
   }
 
   requestAnimationFrame(gameLoop);
