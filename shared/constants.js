@@ -9,7 +9,7 @@ export const TILE_SIZE = 48;
 // Map dims
 export const MAP_WIDTH = 15;
 export const MAP_HEIGHT = 13;
-export const BRICKS_COUNT = 10;
+export const BRICKS_COUNT = 45;
 
 // Tile types grid representations
 export const TILE = {
