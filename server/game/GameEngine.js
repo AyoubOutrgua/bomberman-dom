@@ -7,7 +7,6 @@ const activeGames = new Map();
 
 gameEvents.on("GAME_STARTED", (roomId, playersList) => {
     if (!activeGames.has(roomId)) {
-        const gameLoop = setInterval(() => updatePhysics(roomId), 1000 / 60); 
         
         const playersMap = new Map();
         
@@ -21,61 +20,50 @@ gameEvents.on("GAME_STARTED", (roomId, playersList) => {
 
         activeGames.set(roomId, { 
             map: BASE_MAP, 
-            players: playersMap,
-            loop: gameLoop
+            players: playersMap
         });
     }
 });
 
-function updatePhysics(roomId) {
-    const game = activeGames.get(roomId);
-    if (!game) return;
-
-    for (const [id, player] of game.players.entries()) {
-        if (player.isMoving) {
-            let nextX = player.x;
-            let nextY = player.y;
-
-            if (player.direction === 'ArrowUp') nextY -= player.speed;
-            if (player.direction === 'ArrowDown') nextY += player.speed;
-            if (player.direction === 'ArrowLeft') nextX -= player.speed;
-            if (player.direction === 'ArrowRight') nextX += player.speed;
-
-            if (!isColliding(nextX, nextY, game.map)) {
-                player.x = nextX;
-                player.y = nextY;
-
-                broadcastToRoom(roomId, { 
-                    type: "PLAYER_MOVED", 
-                    payload: {
-                        id: id,
-                        x: player.x,
-                        y: player.y,
-                        direction: player.direction,
-                        isMoving: true
-                    }
-                });
-            }
-        }
-    }
-}
-
 gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
     
     const game = activeGames.get(roomId);
-    if (!game) {
-        return;
-    }
-    
-    if (!game.players.has(playerId)) {
-        return;
-    }
+    if (!game) return;
+    if (!game.players.has(playerId)) return;
 
     const player = game.players.get(playerId);
     
     if (payload.direction === 'none') {
-        player.isMoving = false;
+        if (player.isMoving) {
+            player.isMoving = false;
+            broadcastToRoom(roomId, { 
+                type: "PLAYER_MOVED", 
+                payload: {
+                    id: playerId,
+                    x: player.x,
+                    y: player.y,
+                    direction: player.direction,
+                    isMoving: false,
+                }
+            });
+        }
+    } else {
+        let nextX = player.x;
+        let nextY = player.y;
+
+        if (payload.direction === 'ArrowUp') nextY -= player.speed;
+        if (payload.direction === 'ArrowDown') nextY += player.speed;
+        if (payload.direction === 'ArrowLeft') nextX -= player.speed;
+        if (payload.direction === 'ArrowRight') nextX += player.speed;
+
+        if (!isColliding(nextX, nextY, player.x, player.y, game.map)) {
+            player.x = nextX;
+            player.y = nextY;
+        }
         
+        player.direction = payload.direction;
+        player.isMoving = true;
+
         broadcastToRoom(roomId, { 
             type: "PLAYER_MOVED", 
             payload: {
@@ -83,12 +71,9 @@ gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
                 x: player.x,
                 y: player.y,
                 direction: player.direction,
-                isMoving: false,
+                isMoving: true
             }
         });
-    } else {
-        player.direction = payload.direction;
-        player.isMoving = true;
     }
 });
 
@@ -97,7 +82,6 @@ gameEvents.on("PLAYER_DISCONNECTED", (playerId, roomId) => {
     if (game) {
         game.players.delete(playerId);
         if (game.players.size === 0) {
-            clearInterval(game.loop);
             activeGames.delete(roomId);
         }
     }
