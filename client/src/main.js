@@ -14,7 +14,6 @@ import { Login } from "./components/login.js";
 import { Lobby } from "./components/Lobby.js";
 import { Board } from "./components/Board.js";
 import { Chat } from "./components/Chat.js";
-// TASK 4: Import CombatUI for the HUD
 import { CombatUI } from "./components/CombatUI.js";
 
 initNetwork();
@@ -102,11 +101,16 @@ const appView = (state) => {
         return mainLayout(Lobby(state), state);
     case "map":
         setTimeout(() => {
+            const activeEl = document.activeElement;
+            const isChatFocused = activeEl && (activeEl.id === "chat-input" || activeEl.tagName === "BUTTON");
+            if (isChatFocused) {
+                return;
+            }
+
             const wrapper = document.getElementById("board");
-            if (wrapper) wrapper.focus();
+            if (wrapper) wrapper.focus({ preventScroll: true });
         }, 0);
 
-        // TASK 4: Render CombatUI alongside Board inside a wrapper
         return mainLayout(
             hxs("div", { id: "game-wrapper" },
                 Board(state),
@@ -123,4 +127,3 @@ const container = document.getElementById("board-container");
 if (container) container.innerHTML = "";
 
 mountApp(store, appView, "board-container");
-window.dispatchEvent(new Event("hashchange"));

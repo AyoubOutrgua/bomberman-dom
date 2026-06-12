@@ -1,8 +1,7 @@
 import { store } from "./state.js";
 import { navigateTo } from "./framework/index.js";
-
-// TASK 4: Import Event Manager to use Actions and prevent FPS drops
 import { createEventManager } from "./framework/index.js";
+
 const { dispatch } = createEventManager(store);
 
 export let ws = null;
@@ -23,7 +22,6 @@ const INITIAL_STATE = {
     map: [],
     players: {},
     bombs: [],
-    // TASK 4: Added empty combat arrays
     explosions: [],
     items: [],
     stats: {},
@@ -122,8 +120,6 @@ export const initNetwork = () => {
 
         case "START_GAME": {
           const newPlayers = {};
-          
-          // TASK 4: Initialize Stats at the beginning of the match
           const initialStats = {};
 
           if (data.payload?.players) {
@@ -140,7 +136,6 @@ export const initNetwork = () => {
                 lives: 3,
               };
 
-              // TASK 4: Assign initial lives, score, and power-ups for each player
               initialStats[player.id] = { lives: 3, score: 0, maxBombs: 1, activeBombs: 0, blastRadius: 1, speed: 1.5 };
             });
           }
@@ -153,10 +148,9 @@ export const initNetwork = () => {
               map: data.payload?.map || store.state.map || [],
               players: newPlayers,
               bombs: [],
-              // TASK 4: Inject combat arrays into the State when the match starts
-              explosions: [], 
-              items: [],      
-              stats: initialStats, 
+              explosions: [],
+              items: [],
+              stats: initialStats,
             },
           });
           navigateTo("/map");
@@ -197,16 +191,14 @@ export const initNetwork = () => {
                   id: data.payload.bombId,
                   x: data.payload.x,
                   y: data.payload.y,
-                  // TASK 4: Add frame and ownerId (required for Animation and Score calculation)
-                  frame: 0, 
-                  ownerId: data.payload.ownerId, 
+                  frame: 0,
+                  ownerId: data.payload.ownerId,
                 },
               ],
             },
           });
           break;
         
-        // TASK 4: Replaced messy setState with a batched Action
         case "BOMB_EXPLODED": {
           dispatch("APPLY_EXPLOSION", data.payload);
           break;
@@ -248,8 +240,7 @@ export const initNetwork = () => {
           });
           break;
 
-        // TASK 4: Deduct lives in Stats when a player is hit
-    case "PLAYER_HIT": {
+        case "PLAYER_HIT": {
           const hitId = data.payload.playerId;
           if (!store.state.game.stats[hitId]) break;
           store.setState({
@@ -267,7 +258,6 @@ export const initNetwork = () => {
           break;
         }
 
-        // TASK 4: Collect Power-ups and sync changes from the server
         case "ITEM_COLLECTED": {
           dispatch("COLLECT_ITEM", {
             itemId: data.payload.itemId,
@@ -275,7 +265,6 @@ export const initNetwork = () => {
             itemType: data.payload.itemType
           });
 
-          // Sync server authoritative stats
           store.setState({
             game: {
               ...store.state.game,
@@ -302,7 +291,11 @@ export const initNetwork = () => {
   ws.onclose = () => {
     console.log("[Network] Connection closed by the server.");
     store.setState(INITIAL_STATE);
-    navigateTo("/");
+    
+    const currentPath = window.location.pathname;
+    if (currentPath === "/lobby" || currentPath === "/map") {
+      navigateTo("/");
+    }
   };
 
   ws.onerror = (error) => {

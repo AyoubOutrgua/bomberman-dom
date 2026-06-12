@@ -20,11 +20,15 @@ const MIME_TYPES = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
 };
+const SPA_ROUTES = ["/", "/lobby", "/map"];
 
 const server = http.createServer(async (req, res) => {
-  let safeUrl = req.url === "/" ? "/client/index.html" : req.url;
+  let safeUrl = decodeURI(req.url.split('?')[0]);
+  if (SPA_ROUTES.includes(safeUrl)) {
+    safeUrl = "/client/index.html";
 
-  safeUrl = decodeURI(safeUrl);
+  }
+
   const fullPath = path.join(BASE_DIR, safeUrl);
 
   if (!fullPath.startsWith(BASE_DIR)) {
@@ -42,11 +46,40 @@ const server = http.createServer(async (req, res) => {
     res.statusCode = 200;
     res.end(data);
   } catch (error) {
-    res.setHeader("Content-Type", "text/plain");
+
     if (error.code === "ENOENT") {
-      res.writeHead(302, { Location: "/#/404" });
-      res.end();
+      if (extname && extname !== ".html") {
+
+        res.setHeader("Content-Type", "text/plain");
+
+        res.statusCode = 404;
+
+        return res.end("404 Not Found");
+
+      }
+
+      try {
+
+        const indexPath = path.join(BASE_DIR, "client/index.html");
+
+        const indexData = await fs.readFile(indexPath);
+
+        res.setHeader("Content-Type", "text/html");
+
+        res.statusCode = 404; 
+
+        return res.end(indexData);
+
+      } catch (idxErr) {
+
+        res.statusCode = 500;
+
+        return res.end("500 Internal Server Error");
+
+      }
+
     } else {
+      res.setHeader("Content-Type", "text/plain");
       res.statusCode = 500;
       res.end("500 Internal Server Error");
     }
