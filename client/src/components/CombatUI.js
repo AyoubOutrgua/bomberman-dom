@@ -66,7 +66,7 @@ export const CombatUI = (state) => {
       hxs(
         "div",
         { class: "hud-stat" },
-        hxs("span", { class: "hud-stat-icon hud-icon-bomb" }),
+        hxs("span", { class: "hud-sprite-icon hud-sprite-bomb" }),
         hxs("span", { class: "hud-stat-value" }, `×${maxBombs}`),
       ),
 
@@ -74,7 +74,7 @@ export const CombatUI = (state) => {
       hxs(
         "div",
         { class: "hud-stat" },
-        hxs("span", { class: "hud-stat-icon hud-icon-flame" }),
+        hxs("span", { class: "hud-sprite-icon hud-sprite-flame" }),
         hxs("span", { class: "hud-stat-value" }, `×${blastRadius}`),
       ),
 
@@ -82,11 +82,11 @@ export const CombatUI = (state) => {
       hxs(
         "div",
         { class: "hud-stat" },
-        hxs("span", { class: "hud-stat-icon hud-icon-speed" }),
+        hxs("span", { class: "hud-sprite-icon hud-sprite-speed" }),
         hxs("span", { class: "hud-stat-value" }, `×${speed.toFixed(1)}`),
       ),
 
-      // Timer - loop.js will update this element directly
+      // Timer
       hxs("div", { id: "game-timer-display", class: "hud-timer" }, "00:00"),
     ),
     overlay,

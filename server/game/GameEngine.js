@@ -81,6 +81,9 @@ gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
       },
     });
   }
+
+  // Check if player walked over an item
+  checkItemPickups(game, roomId);
 });
 
 gameEvents.on("PLAYER_DISCONNECTED", (playerId, roomId) => {
