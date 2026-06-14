@@ -7,15 +7,12 @@ import {
   ITEM_TYPES,
   SPEED_MAX,
   SPEED_INCREMENT,
-} from "../../shared/constants.js";
-import { gameEvents, broadcastToRoom } from "../network/socketHandler.js";
-
-import {
   TILE_SIZE,
   TILE,
   MAP_HEIGHT,
   MAP_WIDTH,
 } from "../../shared/constants.js";
+import { gameEvents, broadcastToRoom } from "../network/socketHandler.js";
 
 const tileCol = (px) => Math.floor((px + 24) / TILE_SIZE);
 const tileRow = (py) => Math.floor((py + 33) / TILE_SIZE);
@@ -35,13 +32,8 @@ export function computeBlastCells(map, row, col, radius) {
       const c = col + dc * step;
 
       if (r < 0 || r >= MAP_HEIGHT || c < 0 || c >= MAP_WIDTH) break;
-      const cell = map[r][c];
 
-      if (cell === TILE.BOMB) {
-        const role = step === radius ? "tip" : "arm";
-        cells.push({ row: r, col: c, role, rotation });
-        continue;
-      }
+      const cell = map[r][c];
 
       if (cell === TILE.WALL) break;
 
@@ -60,6 +52,7 @@ export function computeBlastCells(map, row, col, radius) {
       cells.push({ row: r, col: c, role, rotation });
     }
   }
+
   return cells;
 }
 
@@ -70,6 +63,7 @@ export function placeBomb(game, roomId, playerId) {
   const activeBombs = [...game.bombs.values()].filter(
     (b) => b.ownerId === playerId,
   ).length;
+
   if (activeBombs >= player.maxBombs) return;
 
   const col = tileCol(player.x);
@@ -82,8 +76,6 @@ export function placeBomb(game, roomId, playerId) {
 
   const bomb = new Bomb(playerId, row, col, player.blastRadius);
   game.bombs.set(bomb.id, bomb);
-
-  // Sets bomb position in game map.
   game.map[row][col] = TILE.BOMB;
 
   bomb.timer = setTimeout(() => detonateBomb(game, roomId, bomb), BOMB_TIMER);
@@ -107,9 +99,8 @@ export function detonateBomb(game, roomId, bomb) {
     clearTimeout(bomb.timer);
     bomb.timer = null;
   }
-  game.bombs.delete(bomb.id);
 
-  // Restore map bomb position to floor.
+  game.bombs.delete(bomb.id);
   game.map[bomb.row][bomb.col] = TILE.FLOOR;
 
   const blastCells = computeBlastCells(
@@ -118,6 +109,7 @@ export function detonateBomb(game, roomId, bomb) {
     bomb.col,
     bomb.blastRadius,
   );
+
   const destroyedWalls = [];
   const itemDrops = [];
 
@@ -130,13 +122,20 @@ export function detonateBomb(game, roomId, bomb) {
         const types = [ITEM_TYPES.BOMB, ITEM_TYPES.FLAME, ITEM_TYPES.SPEED];
         const type = types[Math.floor(Math.random() * types.length)];
         const itemId = randomUUID();
+
         game.items.set(itemId, {
           id: itemId,
           type,
           row: cell.row,
           col: cell.col,
         });
-        itemDrops.push({ id: itemId, type, row: cell.row, col: cell.col });
+
+        itemDrops.push({
+          id: itemId,
+          type,
+          row: cell.row,
+          col: cell.col,
+        });
       }
     }
   }
@@ -208,12 +207,14 @@ function applyBlastDamage(game, roomId, blastCells) {
       gameEvents.emit("PLAYER_HIT", playerId, roomId, {
         livesLeft: player.lives,
       });
+
       broadcastToRoom(roomId, {
         type: "PLAYER_HIT",
         payload: { playerId, livesLeft: player.lives },
       });
     }
   }
+
   return deadPlayers;
 }
 
@@ -223,47 +224,55 @@ export function chainReact(game, roomId, bombs) {
   }
 }
 
-export function checkItemPickups(game, roomId) {
-  for (const [playerId, player] of game.players) {
-    if (!player.isAlive) continue;
-    const pRow = tileRow(player.y);
-    const pCol = tileCol(player.x);
-    for (const [itemId, item] of game.items) {
-      if (item.row === pRow && item.col === pCol) {
-        game.items.delete(itemId);
+export function checkItemsPickup(game, roomId, playerId) {
+  const player = game.players.get(playerId);
+  if (!player || !player.isAlive) return;
 
-        if (item.type === ITEM_TYPES.SPEED)
-          player.speed = Math.min(player.speed + SPEED_INCREMENT, SPEED_MAX);
-        if (item.type === ITEM_TYPES.BOMB) player.maxBombs++;
-        if (item.type === ITEM_TYPES.FLAME)
-          player.blastRadius = Math.min(
-            player.blastRadius + 1,
-            BLAST_RADIUS_MAX,
-          );
+  const pRow = tileRow(player.y);
+  const pCol = tileCol(player.x);
 
-        broadcastToRoom(roomId, {
-          type: "ITEM_COLLECTED",
-          payload: {
-            itemId,
-            playerId,
-            itemType: item.type,
-            newStats: {
-              speed: player.speed,
-              maxBombs: player.maxBombs,
-              blastRadius: player.blastRadius,
-            },
-          },
-        });
+  for (const [itemId, item] of game.items) {
+    if (item.row === pRow && item.col === pCol) {
+      game.items.delete(itemId);
+
+      if (item.type === ITEM_TYPES.SPEED) {
+        player.speed = Math.min(player.speed + SPEED_INCREMENT, SPEED_MAX);
       }
+
+      if (item.type === ITEM_TYPES.BOMB) {
+        player.maxBombs++;
+      }
+
+      if (item.type === ITEM_TYPES.FLAME) {
+        player.blastRadius = Math.min(player.blastRadius + 1, BLAST_RADIUS_MAX);
+      }
+
+      broadcastToRoom(roomId, {
+        type: "ITEM_COLLECTED",
+        payload: {
+          itemId,
+          playerId,
+          itemType: item.type,
+          newStats: {
+            speed: player.speed,
+            maxBombs: player.maxBombs,
+            blastRadius: player.blastRadius,
+          },
+        },
+      });
+
+      return;
     }
   }
 }
 
 function checkRoundEnd(game, roomId) {
   const alivePlayers = [...game.players.values()].filter((p) => p.isAlive);
+
   if (alivePlayers.length <= 1) {
     const winnerId = alivePlayers[0]?.id ?? null;
     gameEvents.emit("GAME_OVER", roomId, winnerId);
+
     if (game.loop) clearInterval(game.loop);
   }
 }

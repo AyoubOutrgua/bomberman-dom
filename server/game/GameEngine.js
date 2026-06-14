@@ -3,7 +3,7 @@ import { Player } from "./Player.js";
 import { isColliding } from "../../shared/physics.js";
 import { BASE_MAP } from "../network/socketHandler.js";
 
-import { placeBomb, checkItemPickups } from "./BombEngine.js";
+import { placeBomb, checkItemsPickup } from "./BombEngine.js";
 const activeGames = new Map();
 
 gameEvents.on("GAME_STARTED", (roomId, playersList) => {
@@ -22,9 +22,6 @@ gameEvents.on("GAME_STARTED", (roomId, playersList) => {
     activeGames.set(roomId, {
       map: BASE_MAP.map((row) => [...row]),
       players: playersMap,
-      //loop: gameLoop,
-
-      //
       bombs: new Map(),
       items: new Map(),
     });
@@ -82,8 +79,7 @@ gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
     });
   }
 
-  // Check if player walked over an item
-  checkItemPickups(game, roomId);
+  checkItemsPickup(game, roomId, playerId);
 });
 
 gameEvents.on("PLAYER_DISCONNECTED", (playerId, roomId) => {
@@ -96,7 +92,6 @@ gameEvents.on("PLAYER_DISCONNECTED", (playerId, roomId) => {
   }
 });
 
-// Bomb placement
 gameEvents.on("BOMB_PLACED", (playerId, roomId) => {
   const game = activeGames.get(roomId);
   if (!game) return;

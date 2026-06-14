@@ -136,7 +136,14 @@ export const initNetwork = () => {
                 lives: 3,
               };
 
-              initialStats[player.id] = { lives: 3, score: 0, maxBombs: 1, activeBombs: 0, blastRadius: 1, speed: 1.5 };
+              initialStats[player.id] = {
+                lives: 3,
+                score: 0,
+                maxBombs: 1,
+                activeBombs: 0,
+                blastRadius: 1,
+                speed: 1.5,
+              };
             });
           }
 
@@ -198,7 +205,7 @@ export const initNetwork = () => {
             },
           });
           break;
-        
+
         case "BOMB_EXPLODED": {
           dispatch("APPLY_EXPLOSION", data.payload);
           break;
@@ -216,6 +223,9 @@ export const initNetwork = () => {
                 [id]: {
                   ...store.state.game.players[id],
                   isDead: true,
+                  // FIX: also set lives to 0 and stop movement
+                  lives: 0,
+                  isMoving: false,
                 },
               },
               stats: {
@@ -229,7 +239,7 @@ export const initNetwork = () => {
           });
           break;
         }
-
+        
         case "GAME_OVER":
           store.setState({
             game: {
@@ -243,13 +253,24 @@ export const initNetwork = () => {
         case "PLAYER_HIT": {
           const hitId = data.payload.playerId;
           if (!store.state.game.stats[hitId]) break;
+          if (!store.state.game.players[hitId]) break;
+
           store.setState({
             game: {
               ...store.state.game,
+              // FIX: update stats
               stats: {
                 ...store.state.game.stats,
                 [hitId]: {
                   ...store.state.game.stats[hitId],
+                  lives: data.payload.livesLeft,
+                },
+              },
+              // FIX: also sync lives inside players to stay consistent
+              players: {
+                ...store.state.game.players,
+                [hitId]: {
+                  ...store.state.game.players[hitId],
                   lives: data.payload.livesLeft,
                 },
               },
@@ -262,7 +283,7 @@ export const initNetwork = () => {
           dispatch("COLLECT_ITEM", {
             itemId: data.payload.itemId,
             playerId: data.payload.playerId,
-            itemType: data.payload.itemType
+            itemType: data.payload.itemType,
           });
 
           store.setState({
@@ -270,9 +291,9 @@ export const initNetwork = () => {
               ...store.state.game,
               stats: {
                 ...store.state.game.stats,
-                [data.payload.playerId]: { 
-                  ...store.state.game.stats[data.payload.playerId], 
-                  ...data.payload.newStats 
+                [data.payload.playerId]: {
+                  ...store.state.game.stats[data.payload.playerId],
+                  ...data.payload.newStats,
                 },
               },
             },
@@ -291,7 +312,7 @@ export const initNetwork = () => {
   ws.onclose = () => {
     console.log("[Network] Connection closed by the server.");
     store.setState(INITIAL_STATE);
-    
+
     const currentPath = window.location.pathname;
     if (currentPath === "/lobby" || currentPath === "/map") {
       navigateTo("/");
