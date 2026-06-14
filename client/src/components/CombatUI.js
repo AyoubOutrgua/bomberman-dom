@@ -1,33 +1,94 @@
-// Combat HUD / overlay component: displays player icons with remaining
-// lives, active power-up indicators, round timer, and full-screen overlays
-// for death/respawn or victory screens.
-import { hxs } from '../lib/framework/index.js';
+import { hxs } from "../lib/framework/index.js";
 
 export const CombatUI = (state) => {
-    const stats = state.game?.stats || {};
-    const players = state.game?.players || {};
-    const status = state.game?.status;
+  const myId = state.lobby?.myId;
+  const stats = state.game?.stats || {};
+  const players = state.game?.players || {};
+  const status = state.game?.status;
 
-    const playerBars = Object.entries(players).map(([id, p], idx) => {
-        const s = stats[id] || { lives: 3, score: 0, maxBombs: 1, blastRadius: 1, speed: 1.5 };
-        const hearts = Array(Math.max(0, s.lives)).fill('❤').join('');
-        return hxs('div', { key: id, class: 'hud-player-bar' },
-            hxs('span', { class: `hud-color hud-color-${idx}` }, p.username || `P${idx + 1}`),
-            hxs('span', { class: 'hud-lives' }, hearts),
-            hxs('span', { class: 'hud-score' }, `${s.score}pts`),
-            hxs('span', { class: 'hud-powerups' }, `💣×${s.maxBombs} 🔥×${s.blastRadius} ⚡${s.speed.toFixed(1)}`)
-        );
-    });
+  const myStats = stats[myId] || {};
+  const myPlayer = players[myId] || {};
 
-    const overlay = (status === 'finished')
-        ? hxs('div', { class: 'overlay-game-over' },
-            hxs('h1', {}, 'GAME OVER'),
-            hxs('p', {}, state.game.winnerId ? `Winner: ${players[state.game.winnerId]?.username ?? 'Unknown'}` : 'Draw!')
-        )
-        : null;
+  const lives = myStats.lives ?? myPlayer.lives ?? 3;
+  const maxBombs = myStats.maxBombs ?? 1;
+  const blastRadius = myStats.blastRadius ?? 1;
+  const speed = myStats.speed ?? 1.5;
 
-    return hxs('div', { id: 'combat-ui' },
-        hxs('div', { class: 'hud-bar' }, ...playerBars),
-        overlay
+  const livesIndicators = [];
+  for (let i = 0; i < 3; i++) {
+    livesIndicators.push(
+      hxs("span", {
+        class: `hud-heart ${i < lives ? "hud-heart-active" : "hud-heart-empty"}`,
+      }),
     );
+  }
+
+  const overlay =
+    status === "finished"
+      ? hxs(
+          "div",
+          { class: "overlay-game-over" },
+          hxs("h1", {}, "GAME OVER"),
+          hxs(
+            "p",
+            {},
+            state.game.winnerId
+              ? `Winner: ${players[state.game.winnerId]?.username ?? "Unknown"}`
+              : "Draw!",
+          ),
+          hxs(
+            "button",
+            {
+              class: "action-btn",
+              onclick: () => window.location.reload(),
+            },
+            "PLAY AGAIN",
+          ),
+        )
+      : null;
+
+  return hxs(
+    "div",
+    { id: "combat-ui" },
+    hxs(
+      "div",
+      { class: "hud-bar" },
+
+      // HP
+      hxs(
+        "div",
+        { class: "hud-stat" },
+        hxs("span", { class: "hud-stat-label" }, "HP"),
+        hxs("div", { class: "hud-hearts" }, ...livesIndicators),
+      ),
+
+      // Bombs
+      hxs(
+        "div",
+        { class: "hud-stat" },
+        hxs("span", { class: "hud-stat-icon hud-icon-bomb" }),
+        hxs("span", { class: "hud-stat-value" }, `×${maxBombs}`),
+      ),
+
+      // Blast
+      hxs(
+        "div",
+        { class: "hud-stat" },
+        hxs("span", { class: "hud-stat-icon hud-icon-flame" }),
+        hxs("span", { class: "hud-stat-value" }, `×${blastRadius}`),
+      ),
+
+      // Speed
+      hxs(
+        "div",
+        { class: "hud-stat" },
+        hxs("span", { class: "hud-stat-icon hud-icon-speed" }),
+        hxs("span", { class: "hud-stat-value" }, `×${speed.toFixed(1)}`),
+      ),
+
+      // Timer - loop.js will update this element directly
+      hxs("div", { id: "game-timer-display", class: "hud-timer" }, "00:00"),
+    ),
+    overlay,
+  );
 };

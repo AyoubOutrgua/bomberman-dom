@@ -16,6 +16,7 @@ export const TILE = {
   FLOOR: 0,
   WALL: 1,
   BRICK: 2,
+  BOMB: 3,
 };
 
 // Players spawn positions
@@ -35,7 +36,6 @@ export const FRAMES = {
   ArrowRight: { row: 3, cols: 8 },
 };
 
-
 //---bombs---
 // Combat Constants
 export const BOMB_TIMER = 3000;
@@ -45,5 +45,5 @@ export const BOMB_MAX_DEFAULT = 1;
 export const SPEED_DEFAULT = 1.5;
 export const SPEED_MAX = 3.0;
 export const SPEED_INCREMENT = 0.5;
-export const ITEM_TYPES = { BOMB: 'bomb', FLAME: 'flame', SPEED: 'speed' };
+export const ITEM_TYPES = { BOMB: "bomb", FLAME: "flame", SPEED: "speed" };
 export const ITEM_DROP_CHANCE = 0.3;

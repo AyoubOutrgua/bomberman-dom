@@ -96,30 +96,29 @@ const NotFound = () => {
 const appView = (state) => {
   switch (state.currentView) {
     case "login":
-        return Login(state);
+      return Login(state);
     case "lobby":
-        return mainLayout(Lobby(state), state);
+      return mainLayout(Lobby(state), state);
     case "map":
-        setTimeout(() => {
-            const activeEl = document.activeElement;
-            const isChatFocused = activeEl && (activeEl.id === "chat-input" || activeEl.tagName === "BUTTON");
-            if (isChatFocused) {
-                return;
-            }
+      setTimeout(() => {
+        const activeEl = document.activeElement;
+        const isChatFocused =
+          activeEl &&
+          (activeEl.id === "chat-input" || activeEl.tagName === "BUTTON");
+        if (isChatFocused) {
+          return;
+        }
 
-            const wrapper = document.getElementById("board");
-            if (wrapper) wrapper.focus({ preventScroll: true });
-        }, 0);
+        const wrapper = document.getElementById("board");
+        if (wrapper) wrapper.focus({ preventScroll: true });
+      }, 0);
 
-        return mainLayout(
-            hxs("div", { id: "game-wrapper" },
-                Board(state),
-                CombatUI(state)
-            ),
-            state
-        );
+      return mainLayout(
+        hxs("div", { id: "game-wrapper" }, CombatUI(state), Board(state)),
+        state,
+      );
     default:
-        return NotFound();
+      return NotFound();
   }
 };
 

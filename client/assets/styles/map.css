@@ -24,6 +24,7 @@ canvas,
   align-items: center;
   justify-content: center;
   gap: 12px;
+  position: relative;
 }
 
 /* ===========================
@@ -40,8 +41,6 @@ canvas,
    BOARD
    =========================== */
 #board {
-  /* width: 720px; */
-  /* height: 624px; */
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--tile-size));
   grid-template-rows: repeat(var(--rows), var(--tile-size));
@@ -107,4 +106,137 @@ canvas,
 .tile-spawn {
   outline: 2px dashed rgba(0, 255, 0, 0.3);
   outline-offset: -2px;
+}
+
+/* ===========================
+   TEAMMATE TIMER (DO NOT TOUCH)
+   =========================== */
+#game-timer-display {
+  color: #fff;
+  font-family: "Press Start 2P", cursive;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0 #000;
+  margin-left: auto;
+}
+
+/* ===========================
+   COMBAT HUD
+   =========================== */
+#combat-ui {
+  width: 720px;
+  pointer-events: none;
+}
+
+.hud-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 15px;
+  border: 2px solid #333;
+  border-radius: 4px;
+}
+
+.hud-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-stat-label {
+  color: #888;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-family: "Press Start 2P", cursive;
+}
+
+.hud-stat-value {
+  color: #fff;
+  font-size: 12px;
+  font-family: "Press Start 2P", cursive;
+}
+
+/* ===========================
+   CSS HEARTS
+   =========================== */
+.hud-hearts {
+  display: flex;
+  gap: 4px;
+}
+
+.hud-heart {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  border: 1px solid #000;
+}
+
+.hud-heart-active {
+  background: #e63946;
+  box-shadow: 0 0 4px #e63946;
+}
+
+.hud-heart-empty {
+  background: #222;
+}
+
+/* ===========================
+   CSS STAT ICONS
+   =========================== */
+.hud-stat-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.hud-icon-bomb {
+  background: #555;
+  border-radius: 50%;
+  border: 2px solid #aaa;
+}
+
+.hud-icon-flame {
+  background: #ff6600;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.hud-icon-speed {
+  background: #ffcc00;
+  clip-path: polygon(20% 0%, 100% 40%, 20% 100%, 50% 40%);
+}
+
+/* ===========================
+   GAME OVER OVERLAY
+   =========================== */
+.overlay-game-over {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 20px;
+  pointer-events: auto;
+}
+
+.overlay-game-over h1 {
+  color: #ff4444;
+  font-size: 3rem;
+  font-family: "Press Start 2P", cursive;
+  text-shadow: 0 0 20px #ff4444;
+  letter-spacing: 6px;
+}
+
+.overlay-game-over p {
+  color: #fff;
+  font-size: 1rem;
+  font-family: "Press Start 2P", cursive;
+  letter-spacing: 2px;
+}
+
+.overlay-game-over .action-btn {
+  pointer-events: auto;
 }
