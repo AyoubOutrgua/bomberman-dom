@@ -82,7 +82,6 @@ export const Board = (state) => {
     {
       id: "board",
       tabindex: "0",
-      style: "outline: none; --cols: 15; --rows: 13; --tile-size: 48px;",
       onkeydown: handleKeyDown,
       onkeyup: handleKeyUp,
     },

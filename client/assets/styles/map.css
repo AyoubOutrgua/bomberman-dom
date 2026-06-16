@@ -42,14 +42,15 @@ canvas,
    =========================== */
 #board {
   display: grid;
-  grid-template-columns: repeat(var(--cols), var(--tile-size));
-  grid-template-rows: repeat(var(--rows), var(--tile-size));
+  grid-template-columns: repeat(15, 48px);
+  grid-template-rows: repeat(13, 48px);
   background: #111;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 48px 48px;
   position: relative;
+  outline: none;
 }
 
 /* ===========================
