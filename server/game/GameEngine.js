@@ -3,7 +3,7 @@ import { Player } from "./Player.js";
 import { isColliding } from "../../shared/physics.js";
 import { BASE_MAP } from "../network/socketHandler.js";
 
-import { placeBomb, checkItemsPickup } from "./BombEngine.js";
+import { placeBomb, checkItemsPickup, checkRoundEnd } from "./BombEngine.js";
 const activeGames = new Map();
 
 gameEvents.on("GAME_STARTED", (roomId, playersList) => {
@@ -84,12 +84,22 @@ gameEvents.on("PLAYER_MOVED", (playerId, roomId, payload) => {
 
 gameEvents.on("PLAYER_DISCONNECTED", (playerId, roomId) => {
   const game = activeGames.get(roomId);
-  if (game) {
-    game.players.delete(playerId);
-    if (game.players.size === 0) {
-      activeGames.delete(roomId);
-    }
+  if (!game) return;
+
+  // FIX: mark player as dead before removing
+  // so checkRoundEnd counts them correctly
+  const player = game.players.get(playerId);
+  if (player) player.isAlive = false;
+
+  game.players.delete(playerId);
+
+  if (game.players.size === 0) {
+    activeGames.delete(roomId);
+    return;
   }
+
+  // FIX: check if the game should end after this disconnect
+  checkRoundEnd(game, roomId);
 });
 
 gameEvents.on("BOMB_PLACED", (playerId, roomId) => {

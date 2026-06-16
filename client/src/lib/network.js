@@ -96,15 +96,40 @@ export const initNetwork = () => {
           });
           break;
 
-        case "PLAYER_LEFT":
-          store.setState({
-            lobby: {
-              ...store.state.lobby,
-              players: data.payload.players,
-              count: data.payload.count,
-            },
-          });
+        case "PLAYER_LEFT": {
+          const disconnectedId = data.payload.playerId;
+          const isPlaying = store.state.game.status === "playing";
+
+          // FIX: always update lobby
+          const newLobby = {
+            ...store.state.lobby,
+            players: data.payload.players,
+            count: data.payload.count,
+          };
+
+          if (isPlaying && disconnectedId) {
+            // FIX: remove disconnected player from game state
+            const updatedPlayers = { ...store.state.game.players };
+            const updatedStats = { ...store.state.game.stats };
+
+            // FIX: remove sprite from board
+            delete updatedPlayers[disconnectedId];
+            // FIX: remove stats from HUD
+            delete updatedStats[disconnectedId];
+
+            store.setState({
+              lobby: newLobby,
+              game: {
+                ...store.state.game,
+                players: updatedPlayers,
+                stats: updatedStats,
+              },
+            });
+          } else {
+            store.setState({ lobby: newLobby });
+          }
           break;
+        }
 
         case "CHAT_MESSAGE":
           store.setState({
@@ -239,7 +264,7 @@ export const initNetwork = () => {
           });
           break;
         }
-        
+
         case "GAME_OVER":
           store.setState({
             game: {

@@ -297,6 +297,8 @@ export function setupSockets(webs) {
         broadcastToRoom(room.id, {
           type: "PLAYER_LEFT",
           payload: {
+            // FIX: include playerId so client knows who left
+            playerId: ws.playerId,
             count: room.players.length,
             players: room.players.map((p) => p.username),
           },

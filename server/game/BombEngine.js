@@ -48,6 +48,13 @@ export function computeBlastCells(map, row, col, radius) {
         break;
       }
 
+      // FIX: blast passes through bomb tiles for chain reactions
+      if (cell === TILE.BOMB) {
+        const role = step === radius ? "tip" : "arm";
+        cells.push({ row: r, col: c, role, rotation });
+        continue;
+      }
+
       const role = step === radius ? "tip" : "arm";
       cells.push({ row: r, col: c, role, rotation });
     }
@@ -76,6 +83,7 @@ export function placeBomb(game, roomId, playerId) {
 
   const bomb = new Bomb(playerId, row, col, player.blastRadius);
   game.bombs.set(bomb.id, bomb);
+  // FIX: mark bomb on map for collision
   game.map[row][col] = TILE.BOMB;
 
   bomb.timer = setTimeout(() => detonateBomb(game, roomId, bomb), BOMB_TIMER);
@@ -101,6 +109,7 @@ export function detonateBomb(game, roomId, bomb) {
   }
 
   game.bombs.delete(bomb.id);
+  // FIX: clear bomb tile back to floor
   game.map[bomb.row][bomb.col] = TILE.FLOOR;
 
   const blastCells = computeBlastCells(
@@ -175,11 +184,14 @@ export function detonateBomb(game, roomId, bomb) {
     },
   });
 
+  // FIX: if there are chain reactions, process them FIRST
+  // checkRoundEnd will be called by the LAST bomb in the chain
   if (chainingBombs.length > 0) {
     chainReact(game, roomId, chainingBombs);
+  } else {
+    // FIX: only check round end when no more bombs are pending
+    checkRoundEnd(game, roomId);
   }
-
-  checkRoundEnd(game, roomId);
 }
 
 function applyBlastDamage(game, roomId, blastCells) {
@@ -218,9 +230,11 @@ function applyBlastDamage(game, roomId, blastCells) {
   return deadPlayers;
 }
 
+// FIX: chain reactions are now synchronous
+// this ensures ALL explosions resolve before checking winner
 export function chainReact(game, roomId, bombs) {
   for (const bomb of bombs) {
-    setImmediate(() => detonateBomb(game, roomId, bomb));
+    detonateBomb(game, roomId, bomb);
   }
 }
 
@@ -266,7 +280,7 @@ export function checkItemsPickup(game, roomId, playerId) {
   }
 }
 
-function checkRoundEnd(game, roomId) {
+export function checkRoundEnd(game, roomId) {
   const alivePlayers = [...game.players.values()].filter((p) => p.isAlive);
 
   if (alivePlayers.length <= 1) {
