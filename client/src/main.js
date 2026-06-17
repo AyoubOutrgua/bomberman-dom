@@ -51,7 +51,7 @@ addRoute("/lobby", () => {
 });
 
 addRoute("/map", () => {
-  if (store.state.game.status !== "playing") {
+  if (store.state.game.status !== "playing" && store.state.game.status !== "finished") {
     navigateTo("/lobby");
     return;
   }
