@@ -273,10 +273,11 @@ export const initNetwork = () => {
                         },
                     });
 
-                    // FIX: close connection cleanly after game ends
-                    // this triggers onclose which resets state
-                    // delay slightly so GAME_OVER state renders first
-                    ws.close();
+
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.close();
+                    }
+
                     break;
 
                 case "PLAYER_HIT": {
