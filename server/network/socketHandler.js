@@ -141,7 +141,7 @@ function scheduleNextTick(roomId) {
       if (r.phase === "soft_countdown") {
         r.phase = "locked_countdown";
         r.status = "locked";
-        r.timeLeft = 1;
+        r.timeLeft = 10;
         scheduleNextTick(roomId);
       } else if (r.phase === "locked_countdown") {
         r.timer = null;
@@ -204,7 +204,7 @@ function handleRoomTimer(roomId) {
     }
     room.phase = "locked_countdown";
     room.status = "locked";
-    room.timeLeft = 1;
+    room.timeLeft = 10;
     broadcastToRoom(roomId, {
       type: "TIMER_UPDATE",
       payload: { timeLeft: room.timeLeft, phase: room.phase },
@@ -216,7 +216,7 @@ function handleRoomTimer(roomId) {
   if (room.players.length >= 2 && !room.timer) {
     room.phase = "soft_countdown";
     room.status = "waiting";
-    room.timeLeft = 2;
+    room.timeLeft = 20;
     scheduleNextTick(roomId);
   }
 }

@@ -26,6 +26,7 @@ export const startGameLoop = () => {
 };
 
 export const gameLoop = () => {
+  if (store.state.game.status === "finished") return;
   const myId = store.state.lobby.myId;
   const players = store.state.game.players;
 
