@@ -341,11 +341,15 @@ export const initNetwork = () => {
 
     ws.onclose = () => {
         console.log("[Network] Connection closed by the server.");
-        store.setState(INITIAL_STATE);
 
-        const currentPath = window.location.pathname;
-        if (currentPath === "/lobby" || currentPath === "/map") {
-            navigateTo("/");
+        // Preserve finished game state so gameover screen can show
+        if (store.state.game.status !== "finished") {
+            store.setState(INITIAL_STATE);
+
+            const currentPath = window.location.pathname;
+            if (currentPath === "/lobby" || currentPath === "/map") {
+                navigateTo("/");
+            }
         }
     };
 
